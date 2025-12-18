@@ -1,0 +1,375 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* Configure dark mode to use class strategy */
+@variant dark (&:where(.dark, .dark *));
+
+/* Theme configuration */
+@theme {
+  /* Primary colors - Sky blue */
+  --color-primary-50: #f0f9ff;
+  --color-primary-100: #e0f2fe;
+  --color-primary-200: #bae6fd;
+  --color-primary-300: #7dd3fc;
+  --color-primary-400: #38bdf8;
+  --color-primary-500: #0ea5e9;
+  --color-primary-600: #0284c7;
+  --color-primary-700: #0369a1;
+  --color-primary-800: #075985;
+  --color-primary-900: #0c4a6e;
+  --color-primary-950: #082f49;
+
+  /* Accent colors - Fuchsia */
+  --color-accent-50: #fdf4ff;
+  --color-accent-100: #fae8ff;
+  --color-accent-200: #f5d0fe;
+  --color-accent-300: #f0abfc;
+  --color-accent-400: #e879f9;
+  --color-accent-500: #d946ef;
+  --color-accent-600: #c026d3;
+  --color-accent-700: #a21caf;
+  --color-accent-800: #86198f;
+  --color-accent-900: #701a75;
+  --color-accent-950: #4a044e;
+
+  /* Surface colors - Slate */
+  --color-surface-50: #f8fafc;
+  --color-surface-100: #f1f5f9;
+  --color-surface-200: #e2e8f0;
+  --color-surface-300: #cbd5e1;
+  --color-surface-400: #94a3b8;
+  --color-surface-500: #64748b;
+  --color-surface-600: #475569;
+  --color-surface-700: #334155;
+  --color-surface-800: #1e293b;
+  --color-surface-900: #0f172a;
+  --color-surface-950: #020617;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Box shadows */
+  --shadow-glow: 0 0 20px -5px rgba(14, 165, 233, 0.3);
+  --shadow-glow-accent: 0 0 20px -5px rgba(217, 70, 239, 0.3);
+
+  /* Animations */
+  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px -5px rgba(14, 165, 233, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 30px -5px rgba(14, 165, 233, 0.5);
+  }
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+
+  to {
+    height: 0;
+  }
+}
+
+/* Custom scrollbar styles */
+.ddb-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.ddb-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ddb-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.4);
+  border-radius: 3px;
+}
+
+.ddb-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+
+/* Dark mode scrollbar */
+.dark .ddb-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+}
+
+.dark .ddb-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* Prevent any flash of unstyled content */
+.ddb-builder {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Base reset for builder */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Drop indicator animation for kanban-style drag and drop */
+@keyframes dropIndicatorPulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scaleY(1.5);
+  }
+}
+
+/* Disable hover effects and pointer events during drag */
+body.is-dragging * {
+  cursor: grabbing !important;
+  pointer-events: none !important;
+}
+
+body.is-dragging .sortable-item {
+  pointer-events: auto !important;
+}
+
+/* =========================================================================
+   MOCKUP THEME RESTORATION
+   Restoring the dark, neon-accented styling matching the user's screenshot.
+   ========================================================================= */
+
+.mockup-theme {
+  --mockup-bg: #1e293b;
+  --mockup-bg-item: #334155;
+  --mockup-border: #475569;
+  --mockup-text: #f8fafc;
+  --mockup-text-muted: #94a3b8;
+  --mockup-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+
+  /* Neon Accents */
+  --neon-blue: #3b82f6;
+  --neon-purple: #a855f7;
+  --neon-green: #22c55e;
+  --neon-orange: #f97316;
+
+  font-family: 'Inter', sans-serif;
+  color: var(--mockup-text);
+}
+
+/* --- Container Structure --- */
+.flex-container-wrapper {
+  padding: 8px;
+  height: 100%;
+}
+
+.flex-container {
+  background: var(--mockup-bg);
+  border: 1px solid var(--mockup-border);
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 150px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--mockup-shadow);
+  transition: all 0.2s ease;
+}
+
+.flex-container-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--mockup-border);
+  margin-bottom: 4px;
+}
+
+.flex-container-label {
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flex-container-label::before {
+  content: '▼';
+  font-size: 10px;
+  color: var(--mockup-text-muted);
+}
+
+.flex-container-type {
+  font-size: 10px;
+  background: var(--mockup-bg-item);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--mockup-text-muted);
+  text-transform: uppercase;
+}
+
+.flex-container-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 50px;
+}
+
+.flex-container-empty {
+  color: var(--mockup-text-muted);
+  font-style: italic;
+  font-size: 12px;
+  text-align: center;
+  padding: 20px;
+  border: 1px dashed var(--mockup-border);
+  border-radius: 8px;
+}
+
+
+
+.flex-item {
+  background: var(--mockup-bg-item);
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+  width: 100%;
+}
+
+/* Left Border Accents based on Types */
+.flex-item,
+.flex-container {
+  border-left: 4px solid var(--mockup-border);
+}
+
+/* Specific Container Accents (Workspace = Blue, List = Green, etc) */
+.flex-container[data-type="playlist"] {
+  border-left-color: var(--neon-blue);
+}
+
+.flex-container[data-type="workspace"] {
+  border-left-color: var(--neon-purple);
+}
+
+/* Workspace often purple/blue */
+.flex-container[data-type="tasklist"] {
+  border-left-color: var(--neon-green);
+}
+
+.flex-container[data-type="bucket"] {
+  border-left-color: var(--neon-purple);
+}
+
+.flex-container[data-type="folder"] {
+  border-left-color: var(--neon-blue);
+}
+
+/* Item styling */
+.flex-item-icon {
+  color: var(--mockup-text-muted);
+  width: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.flex-item-title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.flex-item-meta {
+  font-size: 11px;
+  color: var(--mockup-text-muted);
+}
+
+.flex-item-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--mockup-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: transparent;
+}
+
+/* Task Item Styling */
+.flex-item--task {
+  border-left: 4px solid var(--neon-green);
+}
+
+.flex-item--done .flex-item-check {
+  background: var(--neon-green);
+  border-color: var(--neon-green);
+  color: white;
+}
+
+.flex-item--done .flex-item-title {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* Track/Audio Styling */
+.flex-item--track {
+  border-left: 4px solid var(--neon-green);
+  /* Matches screenshot tracks */
+}
+
+/* File Styling */
+.flex-item--file {
+  border-left: 4px solid var(--neon-orange);
+  /* Or white/grey */
+}
+
+/* File icon specific */
+.flex-item--file .flex-item-icon {
+  font-size: 16px;
+}
+
+/* Photo Styling */
+.flex-item--photo {
+  justify-content: center;
+  aspect-ratio: 1;
+  font-size: 24px;
+}

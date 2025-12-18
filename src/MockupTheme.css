@@ -1,0 +1,172 @@
+/* Scoped Theme for Mockup Components */
+.mockup-theme {
+    --mockup-bg-primary: #0f172a;
+    --mockup-bg-secondary: #1e293b;
+    --mockup-bg-tertiary: #334155;
+    --mockup-text-primary: #f8fafc;
+    --mockup-text-secondary: #94a3b8;
+    --mockup-text-muted: #64748b;
+    --mockup-accent: #3b82f6;
+    --mockup-accent-light: #60a5fa;
+    --mockup-border: #475569;
+    --mockup-shadow: rgba(0, 0, 0, 0.3);
+    --mockup-radius-sm: 4px;
+    --mockup-radius-md: 8px;
+    --mockup-radius-lg: 12px;
+}
+
+/* Light Mode Overrides */
+.light-canvas .mockup-theme {
+    --mockup-bg-primary: #ffffff;
+    --mockup-bg-secondary: #f1f5f9;
+    --mockup-bg-tertiary: #cbd5e1;
+    --mockup-text-primary: #0f172a;
+    --mockup-text-secondary: #475569;
+    --mockup-text-muted: #64748b;
+    --mockup-border: #e2e8f0;
+    --mockup-shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* Root container */
+.mockup-theme .flex-root {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    /* gap: 12px; REMOVED per user request */
+    /* min-height: 200px; */
+    /* padding: 8px; REMOVED per user request */
+    background: var(--mockup-bg-primary);
+    border-radius: var(--mockup-radius-lg);
+    border: 1px dashed var(--mockup-border);
+}
+
+.mockup-theme .flex-root.is-over {
+    background: color-mix(in srgb, var(--mockup-accent) 5%, var(--mockup-bg-primary));
+    border-color: var(--mockup-accent);
+}
+
+/* Container wrapper */
+.mockup-theme .flex-container-wrapper {
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    min-width: 180px;
+    max-width: 350px;
+    /* padding: 8px; REMOVED per user request */
+    height: 100%;
+}
+
+.mockup-theme .flex-container-wrapper.is-dragging {
+    opacity: 0.4;
+}
+
+/* Nested containers should be smaller */
+.mockup-theme .flex-container-content .flex-container-wrapper {
+    min-width: 150px;
+    max-width: 280px;
+}
+
+/* Container component */
+.mockup-theme .flex-container {
+    background: var(--mockup-bg);
+    /* border: 1px solid var(--mockup-border); HANDLED BY PROPS */
+    /* border-radius: 12px; HANDLED BY PROPS */
+    /* padding: 12px; REMOVED per user request */
+    min-height: 150px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    /* gap: 12px; REMOVED per user request */
+    box-shadow: var(--mockup-shadow);
+    transition: all 0.2s ease;
+}
+
+/* ... */
+
+/* Container content */
+/* Container content */
+.mockup-theme .flex-container-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 30px;
+}
+
+/* ... */
+
+/* Base item styles */
+.mockup-theme .flex-item {
+    display: flex;
+    align-items: center;
+    /* gap: 8px; HANDLED BY PROPS */
+    /* padding: 6px 8px; HANDLED BY PROPS */
+    /* background: var(--mockup-bg-primary); HANDLED BY PROPS */
+    /* border-radius: var(--mockup-radius-sm); HANDLED BY PROPS */
+    cursor: grab;
+    transition: background 0.15s ease;
+    font-size: 11px;
+}
+
+.mockup-theme .flex-item:active {
+    cursor: grabbing;
+}
+
+.mockup-theme body:not(.is-dragging) .flex-item-wrapper:hover .flex-item {
+    /* background: var(--mockup-bg-secondary); HANDLED BY PROPS IF NOT OVERRIDDEN? No, hover effect might need to stay or be handled differently. */
+    /* For now, let's keep hover effect but maybe it overrides prop? */
+    /* If prop sets inline style background, CSS hover won't override it! */
+    /* So hover effect breaks if we set inline background. */
+    /* User said "replace fixed hard coded positioning". Background is visual. */
+    /* But if I set default background prop, it sets inline style. */
+    filter: brightness(1.2);
+    /* Alternative to background change? */
+}
+
+.mockup-theme .flex-item-icon {
+    font-size: 12px;
+    color: var(--mockup-text-muted);
+}
+
+.mockup-theme .flex-item-title {
+    flex: 1;
+    /* color: var(--mockup-text-primary); INHERITED FROM PARENT */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mockup-theme .flex-item-meta {
+    font-size: 10px;
+    color: var(--mockup-text-muted);
+    flex-shrink: 0;
+}
+
+/* Photo item */
+.mockup-theme .flex-item--photo {
+    width: 40px;
+    height: 40px;
+    /* border-radius: var(--mockup-radius-sm); HANDLED BY PROPS */
+    justify-content: center;
+    padding: 0;
+}
+
+.mockup-theme .flex-item--photo .flex-item-emoji {
+    font-size: 18px;
+}
+
+/* Task item */
+
+.mockup-theme .flex-item--task.flex-item--done {
+    opacity: 0.5;
+}
+
+.mockup-theme .flex-item--task.flex-item--done .flex-item-title {
+    text-decoration: line-through;
+}
+
+.mockup-theme .flex-item-check {
+    /* color: var(--mockup-accent); HANDLED BY ITEM RENDERER? */
+    /* Checks are internal elements, keeping some CSS for them is okay if props don't control check color specifically yet.
+       But user said "everything".
+       For now, let's leave internal element styling for now as it's not "layout" or main "border/bg".
+    */
+    color: var(--mockup-accent);
+    font-size: 12px;
+}

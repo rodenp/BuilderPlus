@@ -1,0 +1,91 @@
+{
+  "hash": "f911250e",
+  "configHash": "e2028f06",
+  "lockfileHash": "c1c192bd",
+  "browserHash": "e7e40515",
+  "optimized": {
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "2b7c43b0",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "09fc74ed",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "0661c948",
+      "needsInterop": true
+    },
+    "@dnd-kit/core": {
+      "src": "../../node_modules/@dnd-kit/core/dist/core.esm.js",
+      "file": "@dnd-kit_core.js",
+      "fileHash": "30464bea",
+      "needsInterop": false
+    },
+    "@dnd-kit/sortable": {
+      "src": "../../node_modules/@dnd-kit/sortable/dist/sortable.esm.js",
+      "file": "@dnd-kit_sortable.js",
+      "fileHash": "4d5ecbc5",
+      "needsInterop": false
+    },
+    "@dnd-kit/utilities": {
+      "src": "../../node_modules/@dnd-kit/utilities/dist/utilities.esm.js",
+      "file": "@dnd-kit_utilities.js",
+      "fileHash": "e2a32dc3",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "97fd0694",
+      "needsInterop": false
+    },
+    "react-colorful": {
+      "src": "../../node_modules/react-colorful/dist/index.mjs",
+      "file": "react-colorful.js",
+      "fileHash": "ca1134ac",
+      "needsInterop": false
+    },
+    "uuid": {
+      "src": "../../node_modules/uuid/dist/index.js",
+      "file": "uuid.js",
+      "fileHash": "99218636",
+      "needsInterop": false
+    },
+    "react-dnd": {
+      "src": "../../node_modules/react-dnd/dist/index.js",
+      "file": "react-dnd.js",
+      "fileHash": "2f288462",
+      "needsInterop": false
+    },
+    "react-dnd-html5-backend": {
+      "src": "../../node_modules/react-dnd-html5-backend/dist/index.js",
+      "file": "react-dnd-html5-backend.js",
+      "fileHash": "5ca1a479",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-AWZ7J3XN": {
+      "file": "chunk-AWZ7J3XN.js"
+    },
+    "chunk-PKMJPQ7I": {
+      "file": "chunk-PKMJPQ7I.js"
+    },
+    "chunk-MT42S4ZM": {
+      "file": "chunk-MT42S4ZM.js"
+    },
+    "chunk-WPM43DEG": {
+      "file": "chunk-WPM43DEG.js"
+    },
+    "chunk-G3PMV62Z": {
+      "file": "chunk-G3PMV62Z.js"
+    }
+  }
+}

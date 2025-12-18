@@ -1,0 +1,20 @@
+import { createComponentProperties, type PropertyField } from '../properties';
+
+const contentFields: PropertyField[] = [
+  { key: 'label', label: 'Label', type: 'text', placeholder: 'Field label', group: 'content' },
+  { key: 'options', label: 'Options (one per line)', type: 'textarea', defaultValue: 'Option 1\nOption 2\nOption 3', group: 'content' },
+  { key: 'placeholder', label: 'Placeholder', type: 'text', defaultValue: 'Select an option', group: 'content' },
+  { key: 'required', label: 'Required', type: 'boolean', defaultValue: false, group: 'content' },
+];
+
+export const properties = createComponentProperties(contentFields);
+
+export const defaultProps = {
+  label: '',
+  options: ['Option 1', 'Option 2', 'Option 3'],
+  placeholder: 'Select an option',
+  required: false,
+  margin: { top: '0', right: '0', bottom: '0', left: '0' },
+  padding: { top: '8', right: '12', bottom: '8', left: '12' },
+  borderRadius: '4',
+};
