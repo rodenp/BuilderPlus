@@ -11,13 +11,10 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   return (
     <div
       style={{
+        ...commonStyles,
         height: commonStyles.height || (props.height as string) || '32px',
         backgroundColor: commonStyles.backgroundColor || `${canvasTheme.text}05`,
         borderRadius: commonStyles.borderRadius || '4px',
-        marginTop: commonStyles.marginTop,
-        marginRight: commonStyles.marginRight,
-        marginBottom: commonStyles.marginBottom,
-        marginLeft: commonStyles.marginLeft,
       }}
     />
   );

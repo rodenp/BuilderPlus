@@ -1,17 +1,18 @@
 import type { Project } from '../types/project';
 import { getComponentHTML } from '../components/canvas-components';
-import { getDefaultCanvasColors } from '../types/bodySettings';
 
 export const generateCanvasHTML = async (project: Project): Promise<string> => {
   const { data } = project;
   const { components, bodySettings } = data;
 
   // Get theme colors
-  const defaultColors = getDefaultCanvasColors(false); // Default to light mode for HTML export
+  // Get theme colors (Export normally uses light mode, or we can look into passing preference)
+  const activeTheme = bodySettings?.theme?.light || {};
+
   const canvasTheme = {
-    bg: bodySettings.backgroundColor ?? defaultColors.backgroundColor,
-    text: bodySettings.textColor ?? defaultColors.textColor,
-    link: bodySettings.linkColor ?? defaultColors.linkColor,
+    bg: (activeTheme.backgroundColor as string) || '#ffffff',
+    text: (activeTheme.textColor as string) || '#171717',
+    link: (activeTheme.linkColor as string) || '#2563eb',
   };
 
   // Generate HTML for each component (isExport = true for full HTML export)

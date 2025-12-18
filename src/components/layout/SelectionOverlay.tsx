@@ -12,6 +12,12 @@ interface SelectionOverlayProps {
     selectedId: string | null;
     builderContext: any;
     theme: Theme;
+    canvasTheme: {
+        bg: string;
+        text: string;
+        link: string;
+        primary: string;
+    };
 }
 
 // Helper button component for consistent toolbar styling
@@ -21,7 +27,8 @@ const ToolbarIconButton: React.FC<{
     title: string;
     size?: number;
     color?: string;
-}> = ({ onClick, icon: Icon, title, size = 14, color = 'inherit' }) => {
+    theme: Theme;
+}> = ({ onClick, icon: Icon, title, size = 14, color = 'inherit', theme }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
@@ -34,9 +41,9 @@ const ToolbarIconButton: React.FC<{
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             style={{
-                background: isHovered ? 'rgba(0, 0, 0, 0.4)' : 'transparent',
+                background: isHovered ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
                 border: 'none',
-                color: color,
+                color: color === 'inherit' ? '#fff' : color,
                 cursor: 'pointer',
                 padding: '4px',
                 borderRadius: '4px',
@@ -51,7 +58,7 @@ const ToolbarIconButton: React.FC<{
     );
 };
 
-export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, builderContext, theme }) => {
+export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, builderContext, theme, canvasTheme }) => {
     const [rect, setRect] = useState<DOMRect | null>(null);
     const [innerRect, setInnerRect] = useState<DOMRect | null>(null); // For tight editor positioning
     const [targetType, setTargetType] = useState<string>('');
@@ -61,6 +68,7 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
 
     const editorRef = useRef<RichTextEditorRef>(null);
     const animationFrameRef = useRef<number | undefined>(undefined);
+    const prevSelectedId = useRef<string | null>(null);
 
     // 1. Hook Order - Must be before any early returns
     useEffect(() => {
@@ -88,11 +96,18 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
                 if (component) {
                     setTargetType(component.type);
                     setTargetComponent(component);
+
+                    // Auto-open editor for paragraphs - ONLY if we just selected it
+                    if (component.type === 'paragraph' && selectedId !== prevSelectedId.current) {
+                        setIsEditing(true);
+                        setToolbarMode('text');
+                    }
                 }
             } else {
                 setRect(null);
                 setInnerRect(null);
             }
+            prevSelectedId.current = selectedId;
             animationFrameRef.current = requestAnimationFrame(updateRect);
         };
 
@@ -178,6 +193,8 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
                     ref={editorRef}
                     selectedElement={targetComponent}
                     hideToolbar={true}
+                    defaultTextColor={canvasTheme.text}
+                    theme={theme}
                     onContentChange={(content) => {
                         builderContext.updateComponent(selectedId, { props: { text: content, content: content } });
                     }}
@@ -236,7 +253,6 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
                             fontSize: '11px',
                             fontWeight: 500,
                             pointerEvents: 'auto',
-                            boxShadow: '0 -2px 5px rgba(0,0,0,0.1)',
                         }}
                     >
                         {toolbarMode === 'component' ? (
@@ -254,14 +270,19 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
                                         }}
                                         icon={Type}
                                         title="Format Text"
+                                        color="#fff"
+                                        theme={theme}
                                     />
                                 )}
+
+                                <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.3)', margin: '0 2px' }} />
 
                                 {/* Clone Button */}
                                 <ToolbarIconButton
                                     onClick={() => { if (selectedId) builderContext.copyComponent(selectedId); }}
                                     icon={Copy}
                                     title="Clone"
+                                    theme={theme}
                                 />
 
                                 {/* Delete Button */}
@@ -269,6 +290,7 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
                                     onClick={() => { if (selectedId) builderContext.removeComponent(selectedId); }}
                                     icon={Trash2}
                                     title="Delete"
+                                    theme={theme}
                                 />
 
                                 <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.3)', margin: '0 2px' }} />
@@ -278,28 +300,34 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
                                     onClick={() => builderContext.selectComponent(null)}
                                     icon={X}
                                     title="Deselect (Esc)"
+                                    color="#fff"
+                                    theme={theme}
                                 />
                             </>
                         ) : (
                             <>
                                 {/* Text Formatting Toolbar */}
-                                <ToolbarIconButton onClick={() => editorRef.current?.execCommand('bold')} icon={Bold} title="Bold" />
-                                <ToolbarIconButton onClick={() => editorRef.current?.execCommand('italic')} icon={Italic} title="Italic" />
-                                <ToolbarIconButton onClick={() => editorRef.current?.execCommand('underline')} icon={Underline} title="Underline" />
-                                <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.3)', margin: '0 4px' }} />
-                                <ToolbarIconButton onClick={() => editorRef.current?.execCommand('justifyLeft')} icon={AlignLeft} title="Align Left" />
-                                <ToolbarIconButton onClick={() => editorRef.current?.execCommand('justifyCenter')} icon={AlignCenter} title="Align Center" />
-                                <ToolbarIconButton onClick={() => editorRef.current?.execCommand('justifyRight')} icon={AlignRight} title="Align Right" />
-                                <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.3)', margin: '0 4px' }} />
-                                <ToolbarIconButton onClick={() => editorRef.current?.openLinkModal()} icon={LinkIcon} title="Insert Link" />
-                                <ToolbarIconButton onClick={() => editorRef.current?.openImageGallery()} icon={ImageIcon} title="Insert Image" />
-                                <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.3)', margin: '0 4px' }} />
+                                <ToolbarIconButton onClick={() => editorRef.current?.execCommand('bold')} icon={Bold} title="Bold" color="#fff" theme={theme} />
+                                <ToolbarIconButton onClick={() => editorRef.current?.execCommand('italic')} icon={Italic} title="Italic" color="#fff" theme={theme} />
+                                <ToolbarIconButton onClick={() => editorRef.current?.execCommand('underline')} icon={Underline} title="Underline" color="#fff" theme={theme} />
+                                <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.3)', margin: '0 2px' }} />
+                                <ToolbarIconButton onClick={() => editorRef.current?.execCommand('justifyLeft')} icon={AlignLeft} title="Align Left" color="#fff" theme={theme} />
+                                <ToolbarIconButton onClick={() => editorRef.current?.execCommand('justifyCenter')} icon={AlignCenter} title="Align Center" color="#fff" theme={theme} />
+                                <ToolbarIconButton onClick={() => editorRef.current?.execCommand('justifyRight')} icon={AlignRight} title="Align Right" color="#fff" theme={theme} />
+                                <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.3)', margin: '0 2px' }} />
+                                <ToolbarIconButton onClick={() => editorRef.current?.openLinkModal()} icon={LinkIcon} title="Insert Link" color="#fff" theme={theme} />
+                                <ToolbarIconButton onClick={() => editorRef.current?.openImageGallery()} icon={ImageIcon} title="Insert Image" color="#fff" theme={theme} />
+                                <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.3)', margin: '0 2px' }} />
 
-                                {/* Back to Component Mode */}
                                 <ToolbarIconButton
-                                    onClick={() => setToolbarMode('component')}
+                                    onClick={() => {
+                                        setToolbarMode('component');
+                                        setIsEditing(false);
+                                    }}
                                     icon={X}
-                                    title="Back"
+                                    title="Close Editor"
+                                    color="#fff"
+                                    theme={theme}
                                 />
                             </>
                         )}

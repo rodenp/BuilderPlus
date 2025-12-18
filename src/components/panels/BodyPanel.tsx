@@ -24,6 +24,57 @@ export const BodyPanel: React.FC<BodyPanelProps> = ({
   onBodySettingsChange,
   isCanvasDark,
 }) => {
+  const mode = isCanvasDark ? 'dark' : 'light';
+
+  // Safety check and automatic migration for legacy data
+  React.useEffect(() => {
+    if (!bodySettings.theme || !bodySettings.theme.light || !bodySettings.theme.dark) {
+      const legacy = bodySettings as any;
+      const newTheme = {
+        light: {
+          backgroundColor: legacy.backgroundColor || '#ffffff',
+          backgroundImage: legacy.backgroundImage || '',
+          backgroundSize: legacy.backgroundSize || 'cover',
+          backgroundPosition: legacy.backgroundPosition || 'center',
+          backgroundRepeat: legacy.backgroundRepeat || 'no-repeat',
+          fontFamily: legacy.fontFamily || 'Inter',
+          fontSize: legacy.baseFontSize || '16px',
+          lineHeight: legacy.baseLineHeight || '1.5',
+          textColor: legacy.textColor || '#171717',
+          linkColor: legacy.linkColor || '#2563eb',
+        },
+        dark: {
+          backgroundColor: legacy.backgroundColor || '#1e1e1e',
+          backgroundImage: legacy.backgroundImage || '',
+          backgroundSize: legacy.backgroundSize || 'cover',
+          backgroundPosition: legacy.backgroundPosition || 'center',
+          backgroundRepeat: legacy.backgroundRepeat || 'no-repeat',
+          fontFamily: legacy.fontFamily || 'Inter',
+          fontSize: legacy.baseFontSize || '16px',
+          lineHeight: legacy.baseLineHeight || '1.5',
+          textColor: legacy.textColor || '#e5e5e5',
+          linkColor: legacy.linkColor || '#60a5fa',
+        }
+      };
+
+      onBodySettingsChange({
+        ...bodySettings,
+        theme: newTheme,
+        defaultMode: 'system'
+      });
+    }
+  }, [bodySettings, onBodySettingsChange]);
+
+  if (!bodySettings.theme || !bodySettings.theme.light || !bodySettings.theme.dark) {
+    return (
+      <div style={{ padding: '20px', color: theme.text, fontSize: '13px', textAlign: 'center' }}>
+        Migrating data version...
+      </div>
+    );
+  }
+
+  const currentTheme = bodySettings?.theme?.[mode] || {} as any;
+
   // Accordion state
   const [expandedSections, setExpandedSections] = useState<string[]>([
     'background',
@@ -50,6 +101,19 @@ export const BodyPanel: React.FC<BodyPanelProps> = ({
     onBodySettingsChange({
       ...bodySettings,
       [key]: value,
+    });
+  };
+
+  const updateThemeStyle = (key: string, value: any) => {
+    onBodySettingsChange({
+      ...bodySettings,
+      theme: {
+        ...bodySettings.theme,
+        [mode]: {
+          ...currentTheme,
+          [key]: value
+        }
+      }
     });
   };
 
@@ -148,8 +212,8 @@ export const BodyPanel: React.FC<BodyPanelProps> = ({
           >
             <ColorPicker
               label="Background Color"
-              color={bodySettings.backgroundColor}
-              onChange={(color) => updateSetting('backgroundColor', color)}
+              color={currentTheme.backgroundColor as string}
+              onChange={(color) => updateThemeStyle('backgroundColor', color)}
               isOpen={showBgPicker}
               onToggle={() => {
                 setShowBgPicker(!showBgPicker);
@@ -165,21 +229,21 @@ export const BodyPanel: React.FC<BodyPanelProps> = ({
               <label style={labelStyle}>Background Image URL</label>
               <input
                 type="text"
-                value={bodySettings.backgroundImage}
-                onChange={(e) => updateSetting('backgroundImage', e.target.value)}
+                value={currentTheme.backgroundImage || ''}
+                onChange={(e) => updateThemeStyle('backgroundImage', e.target.value)}
                 placeholder="https://example.com/image.jpg"
                 style={inputStyle}
               />
             </div>
 
-            {bodySettings.backgroundImage && (
+            {currentTheme.backgroundImage && (
               <>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
                     <label style={labelStyle}>Size</label>
                     <select
-                      value={bodySettings.backgroundSize}
-                      onChange={(e) => updateSetting('backgroundSize', e.target.value)}
+                      value={currentTheme.backgroundSize || 'cover'}
+                      onChange={(e) => updateThemeStyle('backgroundSize', e.target.value)}
                       style={inputStyle}
                     >
                       <option value="cover">Cover</option>
@@ -191,8 +255,8 @@ export const BodyPanel: React.FC<BodyPanelProps> = ({
                   <div>
                     <label style={labelStyle}>Position</label>
                     <select
-                      value={bodySettings.backgroundPosition}
-                      onChange={(e) => updateSetting('backgroundPosition', e.target.value)}
+                      value={currentTheme.backgroundPosition || 'center'}
+                      onChange={(e) => updateThemeStyle('backgroundPosition', e.target.value)}
                       style={inputStyle}
                     >
                       <option value="center">Center</option>
@@ -207,8 +271,8 @@ export const BodyPanel: React.FC<BodyPanelProps> = ({
                 <div>
                   <label style={labelStyle}>Repeat</label>
                   <select
-                    value={bodySettings.backgroundRepeat}
-                    onChange={(e) => updateSetting('backgroundRepeat', e.target.value)}
+                    value={currentTheme.backgroundRepeat || 'no-repeat'}
+                    onChange={(e) => updateThemeStyle('backgroundRepeat', e.target.value)}
                     style={inputStyle}
                   >
                     <option value="no-repeat">No Repeat</option>
@@ -233,8 +297,8 @@ export const BodyPanel: React.FC<BodyPanelProps> = ({
             <div>
               <label style={labelStyle}>Font Family</label>
               <select
-                value={bodySettings.fontFamily}
-                onChange={(e) => updateSetting('fontFamily', e.target.value)}
+                value={currentTheme.fontFamily || 'Inter'}
+                onChange={(e) => updateThemeStyle('fontFamily', e.target.value)}
                 style={inputStyle}
               >
                 <option value="Inter">Inter</option>
@@ -256,8 +320,8 @@ export const BodyPanel: React.FC<BodyPanelProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <input
                     type="text"
-                    value={bodySettings.baseFontSize}
-                    onChange={(e) => updateSetting('baseFontSize', e.target.value)}
+                    value={currentTheme.fontSize || ''}
+                    onChange={(e) => updateThemeStyle('fontSize', e.target.value)}
                     style={{ ...inputStyle, width: '70%' }}
                   />
                   <span style={{ fontSize: '12px', color: theme.textMuted }}>px</span>
@@ -267,8 +331,8 @@ export const BodyPanel: React.FC<BodyPanelProps> = ({
                 <label style={labelStyle}>Line Height</label>
                 <input
                   type="text"
-                  value={bodySettings.baseLineHeight}
-                  onChange={(e) => updateSetting('baseLineHeight', e.target.value)}
+                  value={currentTheme.lineHeight || ''}
+                  onChange={(e) => updateThemeStyle('lineHeight', e.target.value)}
                   style={inputStyle}
                 />
               </div>
@@ -276,8 +340,8 @@ export const BodyPanel: React.FC<BodyPanelProps> = ({
 
             <ColorPicker
               label="Text Color"
-              color={bodySettings.textColor}
-              onChange={(color) => updateSetting('textColor', color)}
+              color={currentTheme.textColor as string}
+              onChange={(color) => updateThemeStyle('textColor', color)}
               isOpen={showTextPicker}
               onToggle={() => {
                 setShowTextPicker(!showTextPicker);
@@ -291,8 +355,8 @@ export const BodyPanel: React.FC<BodyPanelProps> = ({
 
             <ColorPicker
               label="Link Color"
-              color={bodySettings.linkColor}
-              onChange={(color) => updateSetting('linkColor', color)}
+              color={currentTheme.linkColor as string}
+              onChange={(color) => updateThemeStyle('linkColor', color)}
               isOpen={showLinkPicker}
               onToggle={() => {
                 setShowLinkPicker(!showLinkPicker);
@@ -319,8 +383,8 @@ export const BodyPanel: React.FC<BodyPanelProps> = ({
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <input
                   type="text"
-                  value={bodySettings.contentWidth}
-                  onChange={(e) => updateSetting('contentWidth', e.target.value)}
+                  value={currentTheme.maxWidth || ''}
+                  onChange={(e) => updateThemeStyle('maxWidth', e.target.value)}
                   style={{ ...inputStyle, width: '80%' }}
                 />
                 <span style={{ fontSize: '12px', color: theme.textMuted }}>px</span>
@@ -335,8 +399,8 @@ export const BodyPanel: React.FC<BodyPanelProps> = ({
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <input
                   type="text"
-                  value={bodySettings.contentPadding}
-                  onChange={(e) => updateSetting('contentPadding', e.target.value)}
+                  value={currentTheme.padding || ''}
+                  onChange={(e) => updateThemeStyle('padding', e.target.value)}
                   style={{ ...inputStyle, width: '80%' }}
                 />
                 <span style={{ fontSize: '12px', color: theme.textMuted }}>px</span>

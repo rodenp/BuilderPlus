@@ -74,6 +74,8 @@ export const importProject = (json: string): Project | null => {
   }
 };
 
+import { defaultBodySettings } from './bodySettings';
+
 // Create a new project
 export const createProject = (
   name: string,
@@ -90,23 +92,7 @@ export const createProject = (
     updatedAt: now,
     data: {
       components: [],
-      bodySettings: {
-        backgroundColor: null,
-        backgroundImage: '',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        fontFamily: 'Inter',
-        baseFontSize: '16',
-        baseLineHeight: '1.5',
-        textColor: null,
-        linkColor: null,
-        contentWidth: '1200',
-        contentPadding: '20',
-        pageTitle: '',
-        metaDescription: '',
-        faviconUrl: '',
-      },
+      bodySettings: { ...defaultBodySettings },
       mediaItems: [],
     },
   };

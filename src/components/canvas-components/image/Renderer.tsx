@@ -11,6 +11,7 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   return (
     <div
       style={{
+        ...commonStyles,
         backgroundColor: commonStyles.backgroundColor || `${canvasTheme.text}10`,
         borderRadius: commonStyles.borderRadius || '8px',
         padding: commonStyles.paddingTop ? undefined : '40px',
@@ -20,15 +21,6 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
         paddingLeft: commonStyles.paddingLeft,
         textAlign: 'center',
         color: commonStyles.color || canvasTheme.text,
-        width: commonStyles.width,
-        height: commonStyles.height,
-        marginTop: commonStyles.marginTop,
-        marginRight: commonStyles.marginRight,
-        marginBottom: commonStyles.marginBottom,
-        marginLeft: commonStyles.marginLeft,
-        borderWidth: commonStyles.borderWidth,
-        borderStyle: commonStyles.borderStyle as React.CSSProperties['borderStyle'],
-        borderColor: commonStyles.borderColor,
       }}
     >
       {(props.src as string) ? (

@@ -191,7 +191,10 @@ export function registerComponent(config: ComponentConfig): void {
 
   // Build the component properties with inherited base fields
   const componentProperties = createComponentProperties(
-    properties,
+    properties.map(field => ({
+      ...field,
+      defaultValue: field.defaultValue ?? defaultProps[field.key]
+    })),
     propertyGroups,
     [],
     isContainer

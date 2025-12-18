@@ -3,7 +3,6 @@ import { useDrop } from 'react-dnd';
 import { Sun, Moon, Monitor, Tablet, Smartphone } from 'lucide-react';
 import type { Theme } from '../panels/property-panel/theme';
 import type { BodySettings } from '../../types/bodySettings';
-import { getDefaultCanvasColors } from '../../types/bodySettings';
 import type { CanvasComponent } from '../../types/component-types';
 import { CanvasComponentRenderer } from './CanvasComponentRenderer';
 import { SelectionOverlay } from './SelectionOverlay';
@@ -50,12 +49,12 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
     };
 
     // Get default colors based on canvas dark/light mode
-    const defaultColors = getDefaultCanvasColors(isCanvasDark);
-
+    const activeTheme = isCanvasDark ? (bodySettings.theme?.dark || {}) : (bodySettings.theme?.light || {});
     const canvasTheme = {
-        bg: bodySettings.backgroundColor ?? defaultColors.backgroundColor,
-        text: bodySettings.textColor ?? defaultColors.textColor,
-        link: bodySettings.linkColor ?? defaultColors.linkColor,
+        bg: (activeTheme.backgroundColor as string) || (isCanvasDark ? '#1e1e1e' : '#ffffff'),
+        text: (activeTheme.textColor as string) || (isCanvasDark ? '#e5e5e5' : '#171717'),
+        link: (activeTheme.linkColor as string) || (isCanvasDark ? '#60a5fa' : '#2563eb'),
+        primary: (activeTheme.primaryColor as string) || (isCanvasDark ? '#3b82f6' : '#2563eb'),
     };
 
     const toolbarButtonStyle = (isActive: boolean): React.CSSProperties => ({
@@ -180,15 +179,20 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                         maxWidth: deviceType === 'desktop' ? 'none' : getCanvasWidth(),
                         minHeight: '100vh',
                         backgroundColor: canvasTheme.bg,
-                        backgroundImage: bodySettings.backgroundImage ? `url(${bodySettings.backgroundImage})` : undefined,
-                        backgroundSize: bodySettings.backgroundSize,
-                        backgroundPosition: bodySettings.backgroundPosition,
-                        backgroundRepeat: bodySettings.backgroundRepeat,
+                        color: canvasTheme.text,
+                        backgroundImage: activeTheme.backgroundImage ? `url(${activeTheme.backgroundImage})` : undefined,
+                        backgroundSize: (activeTheme.backgroundSize as string) || 'cover',
+                        backgroundPosition: (activeTheme.backgroundPosition as string) || 'center',
+                        backgroundRepeat: (activeTheme.backgroundRepeat as string) || 'no-repeat',
                         transition: 'width 0.3s ease, background-color 0.3s ease',
                         overflow: 'visible',
-                        fontFamily: `'${bodySettings.fontFamily}', system-ui, sans-serif`,
-                        fontSize: `${bodySettings.baseFontSize}px`,
-                        lineHeight: bodySettings.baseLineHeight,
+                        fontFamily: `'${activeTheme.fontFamily || 'Inter'}', system-ui, sans-serif`,
+                        fontSize: activeTheme.fontSize ? (typeof activeTheme.fontSize === 'number' || !activeTheme.fontSize.toString().match(/[a-z%]/i) ? `${activeTheme.fontSize}px` : activeTheme.fontSize.toString()) : '16px',
+                        lineHeight: (activeTheme.lineHeight as string) || '1.5',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-start',
+                        alignItems: 'stretch',
                         position: 'relative',
                         boxShadow: '0 0 20px rgba(0,0,0,0.1)', // Subtle shadow
                     }}
@@ -272,6 +276,7 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                 selectedId={props.selectedComponentId ?? null}
                 builderContext={builderContext}
                 theme={theme}
+                canvasTheme={canvasTheme}
             />
         </div >
     );

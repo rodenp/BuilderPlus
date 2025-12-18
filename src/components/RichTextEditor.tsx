@@ -4,6 +4,7 @@ import { Bold, Italic, Underline, Link, FileX, Image, AlignLeft, AlignCenter, Al
 import { ImageGallery, type GalleryImage } from './ImageGallery';
 import type { CanvasComponent } from '../types/component-types';
 import { extractCommonStyles } from './canvas-components/types';
+import type { Theme } from './panels/property-panel/theme';
 
 export interface RichTextEditorRef {
     focus: () => void;
@@ -20,6 +21,7 @@ interface RichTextEditorProps {
     className?: string;
     defaultTextColor?: string;
     hideToolbar?: boolean;
+    theme?: Theme;
 }
 
 export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(({
@@ -29,7 +31,8 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
     onEditingEnd,
     className,
     defaultTextColor,
-    hideToolbar
+    hideToolbar,
+    theme
 }, ref) => {
     const editorRef = useRef<HTMLDivElement>(null);
     const [lastElementId, setLastElementId] = useState<string>('');
@@ -157,11 +160,12 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
     useEffect(() => {
         if (editorRef.current && selectedElement.id === lastElementId) {
             const currentContent = editorRef.current.innerHTML;
-            const newContent = (selectedElement.props.text as string) || (selectedElement.props.content as string) || '';
+            const rawNew = (selectedElement.props.text as string) || (selectedElement.props.content as string);
+            const newContent = (rawNew !== undefined && rawNew !== null && rawNew !== '') ? rawNew : 'Text';
 
             // Only update if content is different AND we are not the active element (prevent cursor jumping)
             if (currentContent !== newContent && document.activeElement !== editorRef.current) {
-                editorRef.current.innerHTML = newContent;
+                editorRef.current.innerHTML = newContent || 'Text';
                 styleLinks(editorRef.current);
             }
         }
@@ -174,7 +178,9 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
         // For now allowing all as long as they have content/text prop mapping handled by parent
         if (editorRef.current && selectedElement.id !== lastElementId) {
             // Mapping content logic: in builderplus content is often in .props.text
-            const initialContent = (selectedElement.props.text as string) || (selectedElement.props.content as string) || '';
+            const rawContent = (selectedElement.props.text as string) || (selectedElement.props.content as string);
+            const initialContent = (rawContent !== undefined && rawContent !== null && rawContent !== '') ? rawContent : 'Text';
+
             editorRef.current.innerHTML = initialContent;
             setLastElementId(selectedElement.id);
 
@@ -699,8 +705,10 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
                     setShowToolbar(true);
                     if (onEditingStart) onEditingStart();
                 }}
-                className={`outline-none min-h-[1.5em] empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400`}
+                data-placeholder="Text"
+                className={`outline-none min-h-[1.5em] empty:before:content-[attr(data-placeholder)] empty:before:text-[var(--placeholder-color)]`}
                 style={{
+                    ['--placeholder-color' as any]: theme?.textMuted || '#94a3b8',
                     // Apply all common styles first (border, margin, padding, radius, font...)
                     ...extractCommonStyles(selectedElement.props),
 
@@ -722,8 +730,12 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
                     overflowY: (selectedElement.props.overflow as any) || 'auto',
 
                     // Colors - use specific props or fallbacks
-                    backgroundColor: (selectedElement.props.backgroundColor as string) || (selectedElement.props.style as any)?.backgroundColor || undefined,
-                    color: (selectedElement.props.textColor as string) || (selectedElement.props.color as string) || (selectedElement.props.style as any)?.color || defaultTextColor || 'inherit',
+                    backgroundColor: (selectedElement.props.backgroundColor === 'inherit' || !selectedElement.props.backgroundColor)
+                        ? 'transparent'
+                        : (selectedElement.props.backgroundColor as string) || (selectedElement.props.style as any)?.backgroundColor || undefined,
+                    color: (selectedElement.props.textColor === 'inherit' || !selectedElement.props.textColor)
+                        ? (defaultTextColor || 'inherit')
+                        : (selectedElement.props.textColor as string) || (selectedElement.props.color as string) || (selectedElement.props.style as any)?.color || defaultTextColor || 'inherit',
 
                     // Layout resets
                     whiteSpace: 'pre-wrap',
@@ -769,10 +781,15 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
                     onMouseDown={(e) => e.stopPropagation()}
                 >
                     <div
-                        className="bg-white rounded-lg p-6 w-96 mx-4"
+                        className="rounded-lg p-6 w-96 mx-4 shadow-xl"
+                        style={{
+                            backgroundColor: theme?.bg || '#ffffff',
+                            color: theme?.text || '#000000',
+                            border: `1px solid ${theme?.border || '#e2e8f0'}`
+                        }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h3 className="text-lg font-semibold mb-4">
+                        <h3 className="text-lg font-semibold mb-4" style={{ color: theme?.text }}>
                             {linkModal.isEdit ? 'Edit Link' : 'Add Link'}
                         </h3>
 
@@ -785,7 +802,12 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
                                     type="text"
                                     value={linkModal.text}
                                     onChange={(e) => setLinkModal(prev => ({ ...prev, text: e.target.value }))}
-                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                    style={{
+                                        backgroundColor: theme?.bgSecondary || '#f9fafb',
+                                        color: theme?.text || '#000000',
+                                        borderColor: theme?.border || '#d1d5db'
+                                    }}
                                     placeholder="Enter link text"
                                 />
                             </div>
@@ -798,7 +820,12 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
                                     type="url"
                                     value={linkModal.url}
                                     onChange={(e) => setLinkModal(prev => ({ ...prev, url: e.target.value }))}
-                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                    style={{
+                                        backgroundColor: theme?.bgSecondary || '#f9fafb',
+                                        color: theme?.text || '#000000',
+                                        borderColor: theme?.border || '#d1d5db'
+                                    }}
                                     placeholder="https://example.com"
                                 />
                             </div>
@@ -821,13 +848,15 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setLinkModal({ isOpen: false, linkElement: null, text: '', url: '', isEdit: false, savedRange: null })}
-                                    className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                                    className="px-4 py-2 rounded-md transition-colors"
+                                    style={{ color: theme?.textMuted, backgroundColor: theme?.bgTertiary }}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={saveLinkModal}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                    className="px-4 py-2 text-white rounded-md transition-colors"
+                                    style={{ backgroundColor: theme?.primary || '#3b82f6' }}
                                 >
                                     Save
                                 </button>
@@ -844,6 +873,7 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
                 onClose={() => setImageGallery({ isOpen: false, savedRange: null })}
                 onImageSelect={handleImageSelect}
                 mode="picker"
+                theme={theme}
             />
         </div>
     );

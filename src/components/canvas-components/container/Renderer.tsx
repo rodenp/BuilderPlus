@@ -12,6 +12,7 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   return (
     <div
       style={{
+        ...commonStyles,
         padding: commonStyles.paddingTop ? undefined : ((props.padding as string) || '16px'),
         paddingTop: commonStyles.paddingTop,
         paddingRight: commonStyles.paddingRight,
@@ -26,16 +27,6 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
         width: commonStyles.width,
         height: commonStyles.height,
         overflow: (props.overflow as any) || 'visible', // Default to visible for containers
-        marginTop: commonStyles.marginTop,
-        marginRight: commonStyles.marginRight,
-        marginBottom: commonStyles.marginBottom,
-        marginLeft: commonStyles.marginLeft,
-        display: commonStyles.display,
-        flexDirection: commonStyles.flexDirection,
-        flexWrap: commonStyles.flexWrap,
-        justifyContent: commonStyles.justifyContent,
-        alignItems: commonStyles.alignItems,
-        gap: commonStyles.gap,
       }}
     >
       <span style={{ color: commonStyles.color || canvasTheme.text, opacity: 0.5, fontSize: '12px' }}>

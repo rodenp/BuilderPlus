@@ -16,7 +16,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({ activeTab, onTabChange, them
     { id: 'blocks', icon: <LayoutGrid style={{ width: 20, height: 20 }} />, label: 'Blocks' },
     { id: 'media', icon: <Image style={{ width: 20, height: 20 }} />, label: 'Media' },
     { id: 'body', icon: <Palette style={{ width: 20, height: 20 }} />, label: 'Body' },
-    { id: 'brand', icon: <Settings style={{ width: 20, height: 20 }} />, label: 'Brand' },
+    { id: 'theme', icon: <Settings style={{ width: 20, height: 20 }} />, label: 'Theme' },
   ];
 
   return (

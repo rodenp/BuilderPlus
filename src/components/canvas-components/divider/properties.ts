@@ -2,11 +2,13 @@ import { createComponentProperties, type PropertyField } from '../properties';
 
 const contentFields: PropertyField[] = [
   { key: 'thickness', label: 'Thickness', type: 'number', defaultValue: 1, group: 'content' },
-  { key: 'style', label: 'Style', type: 'select', defaultValue: 'solid', group: 'content', options: [
-    { label: 'Solid', value: 'solid' },
-    { label: 'Dashed', value: 'dashed' },
-    { label: 'Dotted', value: 'dotted' },
-  ]},
+  {
+    key: 'style', label: 'Style', type: 'select', defaultValue: 'solid', group: 'content', options: [
+      { label: 'Solid', value: 'solid' },
+      { label: 'Dashed', value: 'dashed' },
+      { label: 'Dotted', value: 'dotted' },
+    ]
+  },
 ];
 
 export const properties = createComponentProperties(contentFields);

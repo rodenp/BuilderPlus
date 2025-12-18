@@ -11,12 +11,11 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   return (
     <hr
       style={{
+        ...commonStyles,
         border: 'none',
         borderTop: `${(props.thickness as string) || '1px'} solid ${(props.color as string) || canvasTheme.text + '30'}`,
         marginTop: commonStyles.marginTop || '16px',
         marginBottom: commonStyles.marginBottom || '16px',
-        marginLeft: commonStyles.marginLeft,
-        marginRight: commonStyles.marginRight,
         width: commonStyles.width,
       }}
     />

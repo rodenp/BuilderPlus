@@ -11,11 +11,8 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   return (
     <div
       style={{
+        ...commonStyles,
         width: commonStyles.width,
-        marginTop: commonStyles.marginTop,
-        marginRight: commonStyles.marginRight,
-        marginBottom: commonStyles.marginBottom,
-        marginLeft: commonStyles.marginLeft,
       }}
     >
       {(props.label as string) && (

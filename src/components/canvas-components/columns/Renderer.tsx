@@ -12,19 +12,10 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   return (
     <div
       style={{
+        ...commonStyles,
         display: 'grid',
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
         gap: (props.gap as string) || '16px',
-        marginTop: commonStyles.marginTop,
-        marginRight: commonStyles.marginRight,
-        marginBottom: commonStyles.marginBottom,
-        marginLeft: commonStyles.marginLeft,
-        paddingTop: commonStyles.paddingTop,
-        paddingRight: commonStyles.paddingRight,
-        paddingBottom: commonStyles.paddingBottom,
-        paddingLeft: commonStyles.paddingLeft,
-        backgroundColor: commonStyles.backgroundColor,
-        width: commonStyles.width,
       }}
     >
       {Array.from({ length: columns }).map((_, i) => (

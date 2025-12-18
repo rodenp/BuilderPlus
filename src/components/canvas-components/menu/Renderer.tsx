@@ -13,18 +13,12 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   return (
     <nav
       style={{
+        ...commonStyles,
         display: commonStyles.display || 'flex',
         flexDirection: commonStyles.flexDirection || 'row',
-        flexWrap: commonStyles.flexWrap,
-        justifyContent: commonStyles.justifyContent,
         alignItems: commonStyles.alignItems || 'center',
         gap: commonStyles.gap || '16px',
-        width: commonStyles.width,
         minHeight: '40px',
-        marginTop: commonStyles.marginTop,
-        marginRight: commonStyles.marginRight,
-        marginBottom: commonStyles.marginBottom,
-        marginLeft: commonStyles.marginLeft,
         paddingTop: commonStyles.paddingTop || '8px',
         paddingRight: commonStyles.paddingRight || '8px',
         paddingBottom: commonStyles.paddingBottom || '8px',

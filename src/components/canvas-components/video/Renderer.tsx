@@ -12,6 +12,7 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   return (
     <div
       style={{
+        ...commonStyles,
         backgroundColor: commonStyles.backgroundColor || `${canvasTheme.text}10`,
         borderRadius: commonStyles.borderRadius || '8px',
         padding: commonStyles.paddingTop ? undefined : '40px',
@@ -21,15 +22,6 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
         paddingLeft: commonStyles.paddingLeft,
         textAlign: 'center',
         color: commonStyles.color || canvasTheme.text,
-        width: commonStyles.width,
-        height: commonStyles.height,
-        marginTop: commonStyles.marginTop,
-        marginRight: commonStyles.marginRight,
-        marginBottom: commonStyles.marginBottom,
-        marginLeft: commonStyles.marginLeft,
-        borderWidth: commonStyles.borderWidth,
-        borderStyle: commonStyles.borderStyle as React.CSSProperties['borderStyle'],
-        borderColor: commonStyles.borderColor,
       }}
     >
       {(props.src as string) ? (
@@ -37,8 +29,8 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
           <iframe
             key={`video-iframe-${component.id}`}
             src={convertToEmbedUrl(props.src as string)}
-            style={{ 
-              maxWidth: '100%', 
+            style={{
+              maxWidth: '100%',
               width: '100%',
               height: '315px',
               border: 'none',

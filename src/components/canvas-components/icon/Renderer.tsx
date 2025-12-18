@@ -21,21 +21,11 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   return (
     <div
       style={{
+        ...commonStyles,
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
         color: commonStyles.color || (props.color as string) || canvasTheme.text,
-        backgroundColor: commonStyles.backgroundColor,
-        width: commonStyles.width,
-        height: commonStyles.height,
-        marginTop: commonStyles.marginTop,
-        marginRight: commonStyles.marginRight,
-        marginBottom: commonStyles.marginBottom,
-        marginLeft: commonStyles.marginLeft,
-        paddingTop: commonStyles.paddingTop,
-        paddingRight: commonStyles.paddingRight,
-        paddingBottom: commonStyles.paddingBottom,
-        paddingLeft: commonStyles.paddingLeft,
       }}
     >
       {IconComponent ? (

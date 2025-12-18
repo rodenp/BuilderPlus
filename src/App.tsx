@@ -20,10 +20,11 @@ import { useBuilderState } from './hooks/useBuilderState';
 import './MockupTheme.css'; // Global scope for Mockup theme
 
 import { MediaGallery } from './components/panels/MediaGallery';
+import { ThemePanel } from './components/panels/ThemePanel';
 import type { MediaItem, MediaType } from './types/media';
 import { X } from 'lucide-react';
 
-type MenuTab = 'content' | 'blocks' | 'body' | 'brand' | 'media';
+type MenuTab = 'content' | 'blocks' | 'body' | 'theme' | 'media';
 type AppPage = 'projects' | 'editor';
 
 function App() {
@@ -188,6 +189,7 @@ function App() {
           <PropertyPanel
             theme={theme}
             component={findContainer(selectedComponentId!) || { id: 'dummy', type: 'container', props: {} } as any}
+            components={components}
             onComponentChange={(updated) => {
               // Use the central updateComponent function to ensure consistency
               builderContext.updateComponent(updated.id, updated);
@@ -195,6 +197,7 @@ function App() {
             onDeselect={() => setSelectedComponentId(null)}
             onOpenMediaGallery={openMediaGallery}
             isCanvasDark={isCanvasDark}
+            bodySettings={bodySettings}
           />
         </div>
       );
@@ -213,6 +216,17 @@ function App() {
         return (
           <div style={panelStyle}>
             <BodyPanel
+              theme={theme}
+              bodySettings={bodySettings}
+              onBodySettingsChange={setBodySettings}
+              isCanvasDark={isCanvasDark}
+            />
+          </div>
+        );
+      case 'theme':
+        return (
+          <div style={panelStyle}>
+            <ThemePanel
               theme={theme}
               bodySettings={bodySettings}
               onBodySettingsChange={setBodySettings}

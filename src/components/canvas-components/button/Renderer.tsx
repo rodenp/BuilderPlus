@@ -10,23 +10,18 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   return (
     <button
       style={{
+        ...commonStyles,
         display: 'inline-block',
         padding: commonStyles.paddingTop
           ? `${commonStyles.paddingTop} ${commonStyles.paddingRight} ${commonStyles.paddingBottom} ${commonStyles.paddingLeft}`
           : '12px 24px',
-        backgroundColor: commonStyles.backgroundColor || '#2563eb',
-        color: commonStyles.color || (props.textColor as string) || '#ffffff',
         border: commonStyles.borderWidth
-          ? `${commonStyles.borderWidth} ${commonStyles.borderStyle || 'solid'} ${commonStyles.borderColor || '#000'}`
+          ? `${commonStyles.borderWidth} ${commonStyles.borderStyle || 'solid'} ${commonStyles.borderColor || 'transparent'}`
           : 'none',
-        borderRadius: commonStyles.borderRadius || '8px',
+        borderRadius: commonStyles.borderRadius,
         cursor: 'pointer',
         fontSize: '14px',
         fontWeight: 500,
-        marginTop: commonStyles.marginTop,
-        marginRight: commonStyles.marginRight,
-        marginBottom: commonStyles.marginBottom,
-        marginLeft: commonStyles.marginLeft,
       }}
       onClick={(e) => {
         // In preview mode or live site, this would navigate.

@@ -11,18 +11,11 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   return (
     <div
       style={{
+        ...commonStyles,
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
         width: commonStyles.width,
-        marginTop: commonStyles.marginTop,
-        marginRight: commonStyles.marginRight,
-        marginBottom: commonStyles.marginBottom,
-        marginLeft: commonStyles.marginLeft,
-        paddingTop: commonStyles.paddingTop,
-        paddingRight: commonStyles.paddingRight,
-        paddingBottom: commonStyles.paddingBottom,
-        paddingLeft: commonStyles.paddingLeft,
         backgroundColor: commonStyles.backgroundColor,
       }}
     >

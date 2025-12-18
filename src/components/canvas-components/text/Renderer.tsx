@@ -3,7 +3,6 @@ import type { CanvasComponentProps } from '../types';
 
 export const Renderer: React.FC<CanvasComponentProps> = ({
   component,
-  canvasTheme,
   commonStyles,
 }) => {
   const { props } = component;
@@ -11,17 +10,8 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   return (
     <span
       style={{
-        color: commonStyles.color || canvasTheme.text,
-        marginTop: commonStyles.marginTop,
-        marginRight: commonStyles.marginRight,
-        marginBottom: commonStyles.marginBottom,
-        marginLeft: commonStyles.marginLeft,
-        paddingTop: commonStyles.paddingTop,
-        paddingRight: commonStyles.paddingRight,
-        paddingBottom: commonStyles.paddingBottom,
-        paddingLeft: commonStyles.paddingLeft,
-        backgroundColor: commonStyles.backgroundColor,
-        width: commonStyles.width,
+        ...commonStyles,
+        color: commonStyles.color,
       }}
     >
       {(props.text as string) || 'Text'}

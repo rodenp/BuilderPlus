@@ -72,69 +72,69 @@ export const Header: React.FC<HeaderProps> = ({
             <Redo style={{ width: 18, height: 18 }} />
           </button>
         </div>
+      </div>
 
-        {/* Right section - Preview, Settings, Dark Mode */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <button
-            onClick={onPreviewClick}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 12px',
-              borderRadius: '6px',
-              border: 'none',
-              backgroundColor: mode === 'edit' ? theme.primaryBg : theme.bgSecondary,
-              color: mode === 'edit' ? theme.primaryText : theme.text,
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: 500,
-            }}
-            title={mode === 'edit' ? 'Preview Mode' : 'Edit Mode'}
-          >
-            {mode === 'edit' ? (
-              <>
-                <Eye style={{ width: 16, height: 16 }} />
-                Preview
-              </>
-            ) : (
-              <>
-                <Edit3 style={{ width: 16, height: 16 }} />
-                Edit
-              </>
-            )}
-          </button>
-          <div
-            style={{
-              width: '1px',
-              height: '24px',
-              backgroundColor: theme.border,
-              margin: '0 8px',
-            }}
-          />
-          <button
-            onClick={onSettingsClick}
-            style={buttonStyle}
-            title="Settings"
-          >
-            <Settings style={{ width: 18, height: 18 }} />
-          </button>
-          <button
-            onClick={onDarkModeToggle}
-            style={{
-              ...buttonStyle,
-              backgroundColor: theme.bgSecondary,
-              color: isDarkMode ? '#facc15' : theme.textMuted,
-            }}
-            title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {isDarkMode ? (
-              <Sun style={{ width: 18, height: 18 }} />
-            ) : (
-              <Moon style={{ width: 18, height: 18 }} />
-            )}
-          </button>
-        </div>
+      {/* Right section - Preview, Settings, Dark Mode */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <button
+          onClick={onPreviewClick}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            border: 'none',
+            backgroundColor: mode === 'edit' ? theme.primaryBg : theme.bgSecondary,
+            color: mode === 'edit' ? theme.primaryText : theme.text,
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: 500,
+          }}
+          title={mode === 'edit' ? 'Preview Mode' : 'Edit Mode'}
+        >
+          {mode === 'edit' ? (
+            <>
+              <Eye style={{ width: 16, height: 16 }} />
+              Preview
+            </>
+          ) : (
+            <>
+              <Edit3 style={{ width: 16, height: 16 }} />
+              Edit
+            </>
+          )}
+        </button>
+        <div
+          style={{
+            width: '1px',
+            height: '24px',
+            backgroundColor: theme.border,
+            margin: '0 8px',
+          }}
+        />
+        <button
+          onClick={onSettingsClick}
+          style={buttonStyle}
+          title="Settings"
+        >
+          <Settings style={{ width: 18, height: 18 }} />
+        </button>
+        <button
+          onClick={onDarkModeToggle}
+          style={{
+            ...buttonStyle,
+            backgroundColor: theme.bgSecondary,
+            color: isDarkMode ? '#facc15' : theme.textMuted,
+          }}
+          title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {isDarkMode ? (
+            <Sun style={{ width: 18, height: 18 }} />
+          ) : (
+            <Moon style={{ width: 18, height: 18 }} />
+          )}
+        </button>
       </div>
     </header>
   );

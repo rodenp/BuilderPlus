@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import {
-  Type,
+  MousePointerClick,
+  Image,
+  Video,
+  FolderOpen,
+  X,
   Palette,
+  Type,
   Box,
   Layout,
   Link,
@@ -10,34 +15,15 @@ import {
   AlignCenter,
   AlignRight,
   AlignJustify,
-  Bold,
-  Italic,
-  Underline,
   Link2,
   Link2Off,
-  X,
-  MousePointerClick,
-  Image,
-  Video,
-  FolderOpen,
-  Grid,
-  Square,
-  Check,
-  ChevronDown,
-  ChevronRight,
-  Copy,
-  Trash2,
-  Music,
-  File
 } from 'lucide-react';
 import { RichTextPropertyInput } from './RichTextPropertyInput';
 import type { Theme } from './theme';
 import type { CanvasComponent } from '../../../types/component-types';
-import { getDefaultCanvasColors } from '../../../types/bodySettings';
-import { getComponentProperties } from '../../canvas-components/register';
-// ...
-// ... in component ...
-// const durationInputStyle = createDurationInputStyle(theme); // Removed unused
+import { getComponentProperties, getDefaultProps } from '../../canvas-components/register';
+import { getMergedProps } from '../../../utils/inheritance';
+import type { BodySettings } from '../../../types/bodySettings';
 import type { MediaItem } from '../../../types/media';
 import { Section } from './Section';
 import { BoxModelControl } from './BoxModelControl';
@@ -45,6 +31,7 @@ import { ColorPicker } from './ColorPicker';
 import { PanelHeader } from './PanelHeader';
 import { PanelFooter } from './PanelFooter';
 import { createInputStyle, createLabelStyle, createButtonGroupStyle, createSmallInputStyle } from './styles';
+import { globalStyleRegistry } from '../../../config/style-properties';
 
 interface PropertyPanelProps {
   theme: Theme;
@@ -53,6 +40,8 @@ interface PropertyPanelProps {
   onDeselect?: () => void;
   onOpenMediaGallery?: (onSelect: (item: MediaItem) => void, allowedTypes?: ('image' | 'video' | 'audio' | 'file')[]) => void;
   isCanvasDark: boolean;
+  components?: CanvasComponent[];
+  bodySettings?: BodySettings; // Add bodySettings as optional
 }
 
 export const PropertyPanel: React.FC<PropertyPanelProps> = ({
@@ -62,9 +51,38 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
   onDeselect,
   onOpenMediaGallery,
   isCanvasDark,
+  components = [],
+  bodySettings, // Destructure
 }) => {
   // Get default colors for the canvas
-  const defaultCanvasColors = getDefaultCanvasColors(isCanvasDark);
+  // Determine active theme mode
+  const activeMode = isCanvasDark ? 'dark' : 'light';
+
+  // 1. Get user overrides from bodySettings
+  const userThemeValues = bodySettings?.theme?.[activeMode] || {};
+
+  // 2. Get defaults from registry for this mode
+  const registryDefaults = globalStyleRegistry.getGroups().reduce((acc, group) => {
+    group.properties.forEach(prop => {
+      if (prop.defaultValue?.[activeMode] !== undefined) {
+        acc[prop.key as string] = prop.defaultValue[activeMode];
+      }
+    });
+    return acc;
+  }, {} as Record<string, any>);
+
+  // 3. Merge: User overrides > Registry defaults
+  const themeDefaults = { ...registryDefaults, ...userThemeValues };
+
+  // Compute component-aware theme defaults (e.g. Buttons use Primary color as BG fallback)
+  const isAccent = component?.type === 'button';
+  const resolvedThemeDefaults = {
+    ...themeDefaults,
+    backgroundColor: isAccent ? themeDefaults.primaryColor : themeDefaults.backgroundColor,
+  };
+
+  // Compute "Parent-Only" inherited properties (to show in picker when component is cleared)
+  const inheritedProps = component ? getMergedProps(component.id, components, resolvedThemeDefaults, getDefaultProps, true) : resolvedThemeDefaults;
 
   // Accordion state
   const [expandedSections, setExpandedSections] = useState<string[]>([
@@ -75,12 +93,11 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
   ]);
 
   // Form state
-  const [content, setContent] = useState('Click me!');
-  const [backgroundColor, setBackgroundColor] = useState('#0ea5e9');
-  const [textColor, setTextColor] = useState('#ffffff');
-  const [fontSize, setFontSize] = useState(16);
-  const [fontWeight, setFontWeight] = useState('500');
-  const [textAlign, setTextAlign] = useState('center');
+  // Form state (Demo only)
+  const [demoContent, setDemoContent] = useState('Click me!');
+  const [demoBgColor, setDemoBgColor] = useState('#0ea5e9');
+  const [demoTextColor, setDemoTextColor] = useState('#ffffff');
+  const [demoPrimaryColor, setDemoPrimaryColor] = useState('#2563eb');
 
   // Box model state
   const [margin, setMargin] = useState({ top: '0', right: '0', bottom: '0', left: '0' });
@@ -98,6 +115,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
   // Color picker state
   const [showBgPicker, setShowBgPicker] = useState(false);
   const [showTextPicker, setShowTextPicker] = useState(false);
+  const [showPrimaryPicker, setShowPrimaryPicker] = useState(false);
 
   // HTML Attributes
   const [htmlId, setHtmlId] = useState('');
@@ -159,10 +177,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
     if (!component) return null;
 
     // Determine default canvas colors based on isCanvasDark
-    const defaultCanvasColors = {
-      backgroundColor: isCanvasDark ? '#1f2937' : '#ffffff', // dark gray or white
-      textColor: isCanvasDark ? '#f9fafb' : '#1f2937', // light gray or dark gray
-    };
+    // Using themeDefaults computed above
 
     switch (component.type) {
       case 'button':
@@ -1253,7 +1268,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <ColorPicker
                               label={prop.label}
-                              color={(component.props[prop.key] as string) || null}
+                              color={component.props[prop.key] as string | null | undefined}
                               onChange={(color) => updateProp(prop.key, color)}
                               isOpen={activeColorPicker === prop.key}
                               onToggle={() => {
@@ -1261,9 +1276,9 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                               }}
                               theme={theme}
                               clearable
-                              defaultColor={
-                                prop.key.toLowerCase().includes('background') ? defaultCanvasColors.backgroundColor : defaultCanvasColors.textColor
-                              }
+                              defaultColor={prop.defaultValue as string}
+                              themeDefault={(resolvedThemeDefaults as any)[prop.key]}
+                              inheritedValue={(inheritedProps as any)[prop.key]}
                             />
                           </div>
                         )}
@@ -1378,7 +1393,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
             {/* Component-specific content section */}
             {renderComponentProperties()}
 
-            {/* COLORS Section - common to all components */}
+            {/* COLORS Section */}
             <Section
               id="colors"
               icon={<Palette style={{ width: 16, height: 16, color: theme.textMuted }} />}
@@ -1389,7 +1404,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
             >
               <ColorPicker
                 label="Background Color"
-                color={(component.props.backgroundColor as string) || null}
+                color={component.props.backgroundColor as string | null | undefined}
                 onChange={(color) => updateProp('backgroundColor', color)}
                 isOpen={showBgPicker}
                 onToggle={() => {
@@ -1398,11 +1413,13 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 }}
                 theme={theme}
                 clearable
-                defaultColor={component.type === 'text' || component.type === 'paragraph' ? 'transparent' : defaultCanvasColors.backgroundColor} // Text usually transparent, others theme.bg
+                defaultColor={getDefaultProps(component.type).backgroundColor as string}
+                themeDefault={resolvedThemeDefaults.backgroundColor}
+                inheritedValue={inheritedProps.backgroundColor}
               />
               <ColorPicker
                 label="Text Color"
-                color={(component.props.textColor as string) || null}
+                color={component.props.textColor as string | null | undefined}
                 onChange={(color) => updateProp('textColor', color)}
                 isOpen={showTextPicker}
                 onToggle={() => {
@@ -1411,7 +1428,9 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 }}
                 theme={theme}
                 clearable
-                defaultColor={defaultCanvasColors.textColor}
+                defaultColor={getDefaultProps(component.type).textColor as string || getDefaultProps(component.type).color as string}
+                themeDefault={resolvedThemeDefaults.textColor}
+                inheritedValue={inheritedProps.textColor}
               />
             </Section>
 
@@ -1701,8 +1720,8 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
               <label style={labelStyle}>Button Text</label>
               <input
                 type="text"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
+                value={demoContent}
+                onChange={(e) => setDemoContent(e.target.value)}
                 placeholder="Enter button text..."
                 style={inputStyle}
               />
@@ -1718,8 +1737,8 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 ].map(({ value, icon: Icon }) => (
                   <button
                     key={value}
-                    onClick={() => setTextAlign(value)}
-                    style={createButtonGroupStyle(theme, textAlign === value)}
+                    onClick={() => { }}
+                    style={createButtonGroupStyle(theme, value === 'center')}
                   >
                     <Icon style={{ width: 16, height: 16 }} />
                   </button>
@@ -1728,76 +1747,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
             </div>
           </Section>
 
-          {/* TYPOGRAPHY Section */}
-          <Section
-            id="typography"
-            icon={<Type style={{ width: 16, height: 16, color: theme.textMuted }} />}
-            title="Typography"
-            isExpanded={expandedSections.includes('typography')}
-            onToggle={toggleSection}
-            theme={theme}
-          >
-            <div>
-              <label style={labelStyle}>Font Family</label>
-              <select style={inputStyle}>
-                <option>Inter</option>
-                <option>Roboto</option>
-                <option>Open Sans</option>
-                <option>Poppins</option>
-              </select>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '6px',
-                  }}
-                >
-                  <label style={{ fontSize: '12px', fontWeight: 500, color: theme.textMuted }}>
-                    Font Size
-                  </label>
-                  <span style={{ fontSize: '12px', fontFamily: 'monospace', color: theme.textMuted }}>
-                    {fontSize}px
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min={8}
-                  max={72}
-                  value={fontSize}
-                  onChange={(e) => setFontSize(Number(e.target.value))}
-                  style={{ width: '100%', height: '8px', borderRadius: '4px', cursor: 'pointer' }}
-                />
-              </div>
-              <div>
-                <label style={labelStyle}>Font Weight</label>
-                <select
-                  style={inputStyle}
-                  value={fontWeight}
-                  onChange={(e) => setFontWeight(e.target.value)}
-                >
-                  <option value="300">Light</option>
-                  <option value="400">Regular</option>
-                  <option value="500">Medium</option>
-                  <option value="600">Semibold</option>
-                  <option value="700">Bold</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label style={labelStyle}>Text Style</label>
-              <div style={{ display: 'flex', gap: '4px' }}>
-                {[Bold, Italic, Underline].map((Icon, i) => (
-                  <button key={i} style={createButtonGroupStyle(theme, false)}>
-                    <Icon style={{ width: 16, height: 16 }} />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </Section>
+          {/* Typography section commented out in demo */}
 
           {/* COLORS Section */}
           <Section
@@ -1810,25 +1760,49 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
           >
             <ColorPicker
               label="Background Color"
-              color={backgroundColor}
-              onChange={(color) => setBackgroundColor(color ?? '#0ea5e9')}
+              color={demoBgColor}
+              onChange={(color) => setDemoBgColor(color ?? '#0ea5e9')}
               isOpen={showBgPicker}
               onToggle={() => {
                 setShowBgPicker(!showBgPicker);
                 setShowTextPicker(false);
               }}
               theme={theme}
+              clearable
+              defaultColor="#0ea5e9"
+              themeDefault={defaultCanvasColors.backgroundColor}
+              inheritedValue={defaultCanvasColors.backgroundColor}
             />
             <ColorPicker
               label="Text Color"
-              color={textColor}
-              onChange={(color) => setTextColor(color ?? '#ffffff')}
+              color={demoTextColor}
+              onChange={(color) => setDemoTextColor(color ?? '#ffffff')}
               isOpen={showTextPicker}
               onToggle={() => {
                 setShowTextPicker(!showTextPicker);
                 setShowBgPicker(false);
               }}
               theme={theme}
+              clearable
+              defaultColor="#ffffff"
+              themeDefault={defaultCanvasColors.textColor}
+              inheritedValue={defaultCanvasColors.textColor}
+            />
+            <ColorPicker
+              label="Primary Color"
+              color={demoPrimaryColor}
+              onChange={(color) => setDemoPrimaryColor(color ?? '#2563eb')}
+              isOpen={showPrimaryPicker}
+              onToggle={() => {
+                setShowPrimaryPicker(!showPrimaryPicker);
+                setShowBgPicker(false);
+                setShowTextPicker(false);
+              }}
+              theme={theme}
+              clearable
+              defaultColor="#2563eb"
+              themeDefault={defaultCanvasColors.primaryColor}
+              inheritedValue={defaultCanvasColors.primaryColor}
             />
           </Section>
 

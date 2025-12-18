@@ -5,12 +5,14 @@ import type { Theme } from './theme';
 
 interface ColorPickerProps {
   label: string;
-  color: string | null;
-  onChange: (color: string | null) => void;
+  color: string | null | undefined; // Allow undefined for "default" state
+  onChange: (color: string | null | undefined) => void; // Allow undefined for "default" state
   isOpen: boolean;
   onToggle: () => void;
   theme: Theme;
-  defaultColor?: string;
+  defaultColor?: string; // Component-specific default (e.g. Blue)
+  themeDefault?: string; // Pure theme-inherited color (e.g. Black/White)
+  inheritedValue?: string; // Value from parent/theme when everything is cleared
   clearable?: boolean;
 }
 
@@ -22,6 +24,8 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   onToggle,
   theme,
   defaultColor,
+  themeDefault,
+  inheritedValue, // Destructured inheritedValue
   clearable = false,
 }) => {
   const labelStyle: React.CSSProperties = {
@@ -32,8 +36,52 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     display: 'block',
   };
 
-  const displayColor = color || defaultColor || '#cccccc';
-  const isDefault = color === null;
+  // Priority: User selection > Component Default > Theme Default > Fallback
+  // State distinction:
+  // - Manual: color is a hex string
+  // - Default: color is undefined
+  // - Inherited: color is null
+
+  const displayColor = (() => {
+    // 1. Manual override takes precedence
+    if (color !== null && color !== undefined) return color;
+    // 2. Explicit null means "bypass component defaults and inherit from parent/context"
+    if (color === null) return inheritedValue || themeDefault || '#cccccc';
+    // 3. undefined means "use component default"
+    return defaultColor || inheritedValue || themeDefault || '#cccccc';
+  })().toUpperCase();
+
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (color !== null && color !== undefined) {
+      // Step 1: Clear manual to Default (undefined) or straight to Inherited (null) if no defaultColor
+      if (defaultColor !== undefined) {
+        onChange(undefined);
+      } else {
+        onChange(null);
+      }
+    } else if (color === undefined) {
+      // Step 2: Clear Default to Inherited (null)
+      onChange(null);
+    }
+  };
+
+  const hasValueToClear = (() => {
+    // If no value is set, nothing to clear
+    if (color === null || color === undefined) return false;
+
+    // Normalize colors for comparison (trim and lowercase)
+    const normalizedColor = color.trim().toLowerCase();
+    const normalizedDefault = defaultColor?.trim().toLowerCase();
+    const normalizedTheme = themeDefault?.trim().toLowerCase();
+
+    // Only set "clearable" if it's different from ALL available defaults
+    const isDefault = normalizedColor === normalizedDefault;
+    const isTheme = normalizedColor === normalizedTheme;
+
+    return !isDefault && !isTheme;
+  })();
 
   return (
     <div>
@@ -62,15 +110,11 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                 borderRadius: '4px',
                 border: `1px solid ${theme.borderSecondary}`,
                 backgroundColor: displayColor,
-                opacity: isDefault ? 0.6 : 1,
               }}
             />
-            {clearable && color !== null && (
+            {clearable && hasValueToClear && (
               <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChange(null);
-                }}
+                onClick={handleClear}
                 style={{
                   position: 'absolute',
                   top: '-6px',
@@ -95,11 +139,10 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
             style={{
               fontSize: '14px',
               fontFamily: 'monospace',
-              color: isDefault ? theme.textMuted : theme.textSecondary,
-              fontStyle: isDefault ? 'italic' : 'normal',
+              color: (color === null || color === undefined) ? theme.textSecondary : theme.text,
             }}
           >
-            {isDefault ? (defaultColor || 'Inherited') : color}
+            {displayColor}
           </span>
         </button>
         {isOpen && (
@@ -115,7 +158,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
               border: `1px solid ${theme.border}`,
             }}
           >
-            <HexColorPicker color={displayColor} onChange={onChange} />
+            <HexColorPicker color={displayColor} onChange={(c) => onChange(c)} />
             <div
               style={{
                 display: 'flex',
@@ -127,7 +170,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
               <span style={{ fontSize: '12px', color: theme.textMuted }}>#</span>
               <HexColorInput
                 color={displayColor}
-                onChange={onChange}
+                onChange={(c) => onChange(c)}
                 style={{
                   flex: 1,
                   height: '32px',
@@ -142,27 +185,6 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                 }}
               />
             </div>
-            {clearable && (
-              <button
-                onClick={() => {
-                  onChange(null);
-                  onToggle();
-                }}
-                style={{
-                  width: '100%',
-                  marginTop: '8px',
-                  padding: '8px',
-                  fontSize: '12px',
-                  backgroundColor: theme.bgSecondary,
-                  border: `1px solid ${theme.border}`,
-                  borderRadius: '4px',
-                  color: theme.textMuted,
-                  cursor: 'pointer',
-                }}
-              >
-                Reset to Default
-              </button>
-            )}
           </div>
         )}
       </div>

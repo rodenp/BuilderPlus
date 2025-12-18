@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, Link as LinkIcon, Trash2, Edit2, X, Image as ImageIcon } from 'lucide-react';
 import { clsx } from 'clsx';
+import type { Theme } from './panels/property-panel/theme';
 // import { useStore } from '../store/useStore'; // Removed as it likely doesn't exist in builderplus
 
 // Types adapted for local usage since we might not have them globally
@@ -21,6 +22,7 @@ interface ImageGalleryProps {
     onClose: () => void;
     onImageSelect?: (image: GalleryImage) => void;
     mode?: 'picker' | 'manage';
+    theme?: Theme;
 }
 
 // Mock store functionality for now as we port this over
@@ -44,7 +46,8 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
     isOpen,
     onClose,
     onImageSelect,
-    mode = 'picker'
+    mode = 'picker',
+    theme
 }) => {
     // using local mock store for UI demo purposes if global store is missing
     const { imageGallery, addImageToGallery, removeImageFromGallery, updateGalleryImage } = useStore();
@@ -170,14 +173,20 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
             }}
         >
             <div
-                className="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col mx-4 dark:border dark:border-gray-700"
+                className="rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col mx-4"
+                style={{
+                    backgroundColor: theme?.bg || '#ffffff',
+                    color: theme?.text || '#000000',
+                    border: `1px solid ${theme?.border || '#e2e8f0'}`,
+                    outline: 'none'
+                }}
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-gray-700">
+                <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: theme?.border || '#e2e8f0' }}>
                     <div className="flex items-center gap-3">
-                        <ImageIcon className="text-slate-600 dark:text-gray-400" size={24} />
-                        <h2 className="text-xl font-semibold text-slate-800 dark:text-gray-100">
+                        <ImageIcon size={24} style={{ color: theme?.textMuted || '#64748b' }} />
+                        <h2 className="text-xl font-semibold" style={{ color: theme?.text || '#0f172a' }}>
                             {mode === 'picker' ? 'Choose Image' : 'Image Gallery'}
                         </h2>
                     </div>

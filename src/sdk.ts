@@ -32,3 +32,4 @@ export type {
 // Helpers for styling and HTML generation.
 export { extractCommonStyles } from './components/canvas-components/types';
 export { getComponentHTML } from './components/canvas-components/register';
+export { globalStyleRegistry } from './config/style-properties';

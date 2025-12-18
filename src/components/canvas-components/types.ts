@@ -6,6 +6,7 @@ export interface CanvasTheme {
   bg: string;
   text: string;
   link: string;
+  primary: string;
 }
 
 // Common styles extracted from component props

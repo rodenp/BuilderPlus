@@ -3,7 +3,6 @@ import type { CanvasComponentProps } from '../types';
 
 export const Renderer: React.FC<CanvasComponentProps> = ({
   component,
-  canvasTheme,
   commonStyles,
 }) => {
   const { props } = component;
@@ -21,18 +20,7 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   const headingStyle: React.CSSProperties = {
     fontSize: fontSizes[level] || '24px',
     fontWeight: 600,
-    color: commonStyles.color || canvasTheme.text,
     margin: 0,
-    marginTop: commonStyles.marginTop,
-    marginRight: commonStyles.marginRight,
-    marginBottom: commonStyles.marginBottom,
-    marginLeft: commonStyles.marginLeft,
-    paddingTop: commonStyles.paddingTop,
-    paddingRight: commonStyles.paddingRight,
-    paddingBottom: commonStyles.paddingBottom,
-    paddingLeft: commonStyles.paddingLeft,
-    backgroundColor: commonStyles.backgroundColor,
-    width: commonStyles.width,
     ...commonStyles
   };
 

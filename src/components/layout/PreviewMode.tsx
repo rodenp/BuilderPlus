@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import type { Project } from '../../types/project';
 import { Edit3 } from 'lucide-react';
 import { generateCanvasContent } from '../../utils/htmlExport';
-import { getDefaultCanvasColors } from '../../types/bodySettings';
 
 interface PreviewModeProps {
   project: Project;
@@ -42,11 +41,13 @@ export const PreviewMode: React.FC<PreviewModeProps> = ({
   }, [project]);
 
   const { bodySettings } = project.data;
-  const defaultColors = getDefaultCanvasColors(isCanvasDark);
+  const activeMode = isCanvasDark ? 'dark' : 'light';
+  const activeTheme = bodySettings?.theme?.[activeMode] || {};
+
   const canvasTheme = {
-    bg: bodySettings.backgroundColor ?? defaultColors.backgroundColor,
-    text: bodySettings.textColor ?? defaultColors.textColor,
-    link: bodySettings.linkColor ?? defaultColors.linkColor,
+    bg: (activeTheme.backgroundColor as string) || (isCanvasDark ? '#1e1e1e' : '#ffffff'),
+    text: (activeTheme.textColor as string) || (isCanvasDark ? '#e5e5e5' : '#171717'),
+    link: (activeTheme.linkColor as string) || (isCanvasDark ? '#60a5fa' : '#2563eb'),
   };
 
   return (

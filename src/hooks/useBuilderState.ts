@@ -134,7 +134,7 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
             return {
                 id,
                 type: def.type,
-                props: { ...childDefaultProps, ...def.props },
+                props: def.props || {},
                 children,
                 parentId
             };
@@ -143,8 +143,8 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
         const newComponent: CanvasComponent = {
             id: componentId,
             type: componentDef.type,
-            // MERGE: defaultProps + props from drag item
-            props: { ...defaultProps, ...componentDef.props },
+            // DO NOT bake defaults here anymore. getMergedProps handles it.
+            props: componentDef.props || {},
             children: initialChildren.map((childDef: any) =>
                 buildComponentTree(childDef, componentId)
             ),

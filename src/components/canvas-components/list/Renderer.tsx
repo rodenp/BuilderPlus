@@ -15,25 +15,10 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   return (
     <Tag
       style={{
+        ...commonStyles,
         margin: 0,
-        marginTop: commonStyles.marginTop,
-        marginRight: commonStyles.marginRight,
-        marginBottom: commonStyles.marginBottom,
-        marginLeft: commonStyles.marginLeft,
-        paddingTop: commonStyles.paddingTop,
-        paddingRight: commonStyles.paddingRight,
-        paddingBottom: commonStyles.paddingBottom,
         paddingLeft: commonStyles.paddingLeft || '24px',
-        backgroundColor: commonStyles.backgroundColor,
-        color: commonStyles.color || canvasTheme.text,
-        width: commonStyles.width,
         listStyleType: listType === 'ordered' ? 'decimal' : 'disc',
-        display: commonStyles.display,
-        flexDirection: commonStyles.flexDirection,
-        flexWrap: commonStyles.flexWrap,
-        justifyContent: commonStyles.justifyContent,
-        alignItems: commonStyles.alignItems,
-        gap: commonStyles.gap,
       }}
     >
       {children.length > 0 ? (
