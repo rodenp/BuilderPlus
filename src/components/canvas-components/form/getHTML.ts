@@ -5,9 +5,9 @@ export const getHTML = (component: CanvasComponent): string => {
   const { props } = component;
   const styles = extractCommonStyles(props);
   const hasBorder = styles.borderWidth && styles.borderWidth !== '0px';
-  
+
   const styleString = [
-    `padding: ${styles.paddingTop ? `${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}` : '20px'}`,
+    `padding: ${styles.paddingTop ? `${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}` : (styles.formPadding || '20px')}`,
     `background-color: ${styles.backgroundColor || 'transparent'}`,
     `border: ${hasBorder
       ? `${styles.borderWidth} ${styles.borderStyle || 'solid'} ${styles.borderColor || '#000'}`

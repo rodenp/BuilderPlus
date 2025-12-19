@@ -8,6 +8,7 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
 }) => {
   const { props } = component;
   const columns = (props.columns as number) || 2;
+  const gap = commonStyles.columnGap || (props.gap as string) || '16px';
 
   return (
     <div
@@ -15,7 +16,7 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
         ...commonStyles,
         display: 'grid',
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
-        gap: (props.gap as string) || '16px',
+        gap: gap,
       }}
     >
       {Array.from({ length: columns }).map((_, i) => (

@@ -19,8 +19,8 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
         border: hasBorder
           ? `${commonStyles.borderWidth} ${commonStyles.borderStyle || 'solid'} ${commonStyles.borderColor || '#e5e7eb'}`
           : `1px solid ${canvasTheme.text}20`,
-        borderRadius: commonStyles.borderRadius || '8px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        borderRadius: commonStyles.borderRadius || commonStyles.cardBorderRadius || '8px',
+        boxShadow: commonStyles.cardShadow || '0 1px 3px rgba(0,0,0,0.1)',
         minHeight: '80px',
         width: commonStyles.width,
         marginTop: commonStyles.marginTop,

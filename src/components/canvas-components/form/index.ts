@@ -1,3 +1,3 @@
 export { Renderer } from './Renderer';
-export { properties, defaultProps } from './properties';
+export { properties, defaultProps, styleProperties } from './properties';
 export { getHTML } from './getHTML';

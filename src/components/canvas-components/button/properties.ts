@@ -1,4 +1,5 @@
 import { createComponentProperties, type PropertyField } from '../properties';
+import type { StylePropertyDefinition } from '../../../config/style-properties';
 
 const contentFields: PropertyField[] = [
   { key: 'text', label: 'Button Text', type: 'text', defaultValue: 'Button', group: 'content' },
@@ -17,7 +18,17 @@ const contentFields: PropertyField[] = [
   { key: 'url', label: 'Link URL', type: 'url', placeholder: 'https://...', group: 'content' },
 ];
 
-export const properties = createComponentProperties(contentFields);
+export const styleProperties: StylePropertyDefinition[] = [
+  { key: 'buttonFontSize', label: 'Button Font Size', type: 'text', group: 'Typography', systemFallback: '14px' },
+  { key: 'buttonFontWeight', label: 'Button Font Weight', type: 'text', group: 'Typography', systemFallback: '500' },
+];
+
+export const properties = createComponentProperties(contentFields, [], [], false, {
+  padding: { themeKey: 'buttonPadding' },
+  backgroundColor: { themeKey: 'buttonPrimaryBg' },
+  color: { themeKey: 'buttonPrimaryText' },
+  borderRadius: { themeKey: 'buttonBorderRadius' }
+});
 
 export const defaultProps = {
   text: 'Button',

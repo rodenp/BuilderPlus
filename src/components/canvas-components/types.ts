@@ -35,6 +35,10 @@ export interface CommonStyles {
   justifyContent?: string;
   alignItems?: string;
   gap?: string;
+  fontSize?: string;
+  lineHeight?: string;
+  // Dynamic properties from the theme system
+  [key: string]: any;
 }
 
 // Props passed to each canvas component renderer
@@ -62,30 +66,30 @@ export const extractCommonStyles = (props: Record<string, unknown>): CommonStyle
   const margin = props.margin as { top?: string; right?: string; bottom?: string; left?: string } | undefined;
   const padding = props.padding as { top?: string; right?: string; bottom?: string; left?: string } | undefined;
 
-  return {
-    width: props.width ? (typeof props.width === 'number' || !isNaN(Number(props.width)) ? `${props.width}px` : props.width as string) : undefined,
-    height: props.height ? (typeof props.height === 'number' || !isNaN(Number(props.height)) ? `${props.height}px` : props.height as string) : undefined,
-    maxWidth: props.maxWidth ? (typeof props.maxWidth === 'number' || !isNaN(Number(props.maxWidth)) ? `${props.maxWidth}px` : props.maxWidth as string) : undefined,
-    maxHeight: props.maxHeight ? (typeof props.maxHeight === 'number' || !isNaN(Number(props.maxHeight)) ? `${props.maxHeight}px` : props.maxHeight as string) : undefined,
-    backgroundColor: props.backgroundColor as string | undefined,
-    color: (props.textColor || props.color) as string | undefined,
-    borderRadius: props.borderRadius ? `${props.borderRadius}px` : undefined,
-    borderWidth: props.borderWidth !== undefined ? (typeof props.borderWidth === 'number' ? `${props.borderWidth}px` : props.borderWidth as string) : undefined,
-    borderStyle: props.borderStyle as string | undefined,
-    borderColor: props.borderColor as string | undefined,
-    marginTop: margin?.top ? `${margin.top}px` : undefined,
-    marginRight: margin?.right ? `${margin.right}px` : undefined,
-    marginBottom: margin?.bottom ? `${margin.bottom}px` : undefined,
-    marginLeft: margin?.left ? `${margin.left}px` : undefined,
-    paddingTop: padding?.top ? `${padding.top}px` : undefined,
-    paddingRight: padding?.right ? `${padding.right}px` : undefined,
-    paddingBottom: padding?.bottom ? `${padding.bottom}px` : undefined,
-    paddingLeft: padding?.left ? `${padding.left}px` : undefined,
-    display: props.display as string | undefined,
-    flexDirection: props.flexDirection as CommonStyles['flexDirection'],
-    flexWrap: props.flexWrap as CommonStyles['flexWrap'],
-    justifyContent: props.justifyContent as string | undefined,
-    alignItems: props.alignItems as string | undefined,
-    gap: props.gap !== undefined ? `${props.gap}px` : undefined,
-  };
+  // Start with all props (which includes theme defaults)
+  const styles: any = { ...props };
+
+  // Explicit transformations for standard layout/spacing
+  styles.width = props.width ? (typeof props.width === 'number' || !isNaN(Number(props.width)) ? `${props.width}px` : props.width as string) : undefined;
+  styles.height = props.height ? (typeof props.height === 'number' || !isNaN(Number(props.height)) ? `${props.height}px` : props.height as string) : undefined;
+  styles.maxWidth = props.maxWidth ? (typeof props.maxWidth === 'number' || !isNaN(Number(props.maxWidth)) ? `${props.maxWidth}px` : props.maxWidth as string) : undefined;
+  styles.maxHeight = props.maxHeight ? (typeof props.maxHeight === 'number' || !isNaN(Number(props.maxHeight)) ? `${props.maxHeight}px` : props.maxHeight as string) : undefined;
+  styles.backgroundColor = props.backgroundColor as string | undefined;
+  styles.color = (props.textColor || props.color) as string | undefined;
+  styles.borderRadius = props.borderRadius !== undefined ? (typeof props.borderRadius === 'number' || !isNaN(Number(props.borderRadius)) ? `${props.borderRadius}px` : props.borderRadius as string) : undefined;
+  styles.borderWidth = props.borderWidth !== undefined ? (typeof props.borderWidth === 'number' || !isNaN(Number(props.borderWidth)) ? `${props.borderWidth}px` : props.borderWidth as string) : undefined;
+  styles.borderStyle = props.borderStyle as string | undefined;
+  styles.borderColor = props.borderColor as string | undefined;
+  styles.marginTop = margin?.top ? `${margin.top}px` : undefined;
+  styles.marginRight = margin?.right ? `${margin.right}px` : undefined;
+  styles.marginBottom = margin?.bottom ? `${margin.bottom}px` : undefined;
+  styles.marginLeft = margin?.left ? `${margin.left}px` : undefined;
+  styles.paddingTop = padding?.top ? `${padding.top}px` : undefined;
+  styles.paddingRight = padding?.right ? `${padding.right}px` : undefined;
+  styles.paddingBottom = padding?.bottom ? `${padding.bottom}px` : undefined;
+  styles.paddingLeft = padding?.left ? `${padding.left}px` : undefined;
+  styles.display = props.display as string | undefined;
+  styles.gap = props.gap !== undefined ? (typeof props.gap === 'number' || !isNaN(Number(props.gap)) ? `${props.gap}px` : props.gap as string) : undefined;
+
+  return styles as CommonStyles;
 };

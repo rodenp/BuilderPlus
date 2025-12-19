@@ -1,8 +1,15 @@
 import { createComponentProperties, type PropertyField } from '../properties';
+import type { StylePropertyDefinition } from '../../../config/style-properties';
 
 const contentFields: PropertyField[] = [];
 
-export const properties = createComponentProperties(contentFields, [], [], true);
+export const styleProperties: StylePropertyDefinition[] = [
+  { key: 'sectionPadding', label: 'Section Default Padding', type: 'text', group: 'Layout', systemFallback: '40px 24px' },
+];
+
+export const properties = createComponentProperties(contentFields, [], [], true, {
+  padding: { themeKey: 'sectionPadding' }
+});
 
 export const defaultProps = {
   backgroundColor: 'transparent',

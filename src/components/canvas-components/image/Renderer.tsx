@@ -7,6 +7,7 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   commonStyles,
 }) => {
   const { props } = component;
+  const placeholderPadding = commonStyles.mediaPlaceholderPadding || '40px';
 
   return (
     <div
@@ -14,7 +15,7 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
         ...commonStyles,
         backgroundColor: commonStyles.backgroundColor || `${canvasTheme.text}10`,
         borderRadius: commonStyles.borderRadius || '8px',
-        padding: commonStyles.paddingTop ? undefined : '40px',
+        padding: commonStyles.paddingTop ? undefined : placeholderPadding,
         paddingTop: commonStyles.paddingTop,
         paddingRight: commonStyles.paddingRight,
         paddingBottom: commonStyles.paddingBottom,

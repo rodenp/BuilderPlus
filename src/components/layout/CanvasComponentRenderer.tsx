@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import type { CanvasComponent } from '../../types/component-types';
-import type { Theme } from '../panels/property-panel/theme';
+import type { Theme as UITheme } from '../panels/property-panel/theme';
+import type { Theme } from '../../types/theme';
 import { DragTypes } from '../../types/dnd-types';
 import { getRenderer, getDefaultProps } from '../../components/canvas-components/register';
 import { extractCommonStyles } from '../../components/canvas-components/types';
@@ -16,7 +17,8 @@ interface CanvasComponentRendererProps {
     index: number;
     parentId: string | null;
     builderContext: any;
-    theme: Theme;
+    theme: UITheme;
+    activeThemeObject: Theme;
     canvasTheme: CanvasTheme;
     parentFlexDirection?: string;
 }
@@ -27,6 +29,7 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
     parentId,
     builderContext,
     theme,
+    activeThemeObject,
     canvasTheme,
     parentFlexDirection = 'column',
 }) => {
@@ -114,6 +117,7 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
             parentId={component.id}
             builderContext={builderContext}
             theme={theme}
+            activeThemeObject={activeThemeObject}
             canvasTheme={canvasTheme}
             parentFlexDirection={(component.props as any).flexDirection}
         />
@@ -121,16 +125,16 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
 
     // COMPUTE MERGE PROPS FOR INHERITANCE
     const isAccent = component.type === 'button';
-    const activeMode = canvasTheme.bg === '#1e1e1e' ? 'dark' : 'light';
-    const activeTheme = builderContext.bodySettings?.theme?.[activeMode] || {};
+    // const activeMode = canvasTheme.bg === '#1e1e1e' ? 'dark' : 'light';
+    // const activeTheme = builderContext.bodySettings?.theme?.[activeMode] || {};
 
     const themeDefaults = {
-        ...activeTheme,
-        backgroundColor: isAccent ? activeTheme.primaryColor : activeTheme.backgroundColor,
+        ...(activeThemeObject?.styles || {}),
+        backgroundColor: isAccent ? activeThemeObject?.styles?.primaryColor : activeThemeObject?.styles?.backgroundColor,
         // Use 'color' key for generic merging but prioritize 'textColor' from settings
-        color: activeTheme.textColor || activeTheme.color,
-        textColor: activeTheme.textColor,
-        linkColor: activeTheme.linkColor,
+        color: activeThemeObject?.styles?.textColor || activeThemeObject?.styles?.color,
+        textColor: activeThemeObject?.styles?.textColor,
+        linkColor: activeThemeObject?.styles?.linkColor,
     };
 
     // Merge props: Global Defaults -> Parent Inherited -> Component Manual
@@ -191,6 +195,7 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
                         children={component.children || []}
                         builderContext={builderContext}
                         theme={theme}
+                        activeThemeObject={activeThemeObject}
                         canvasTheme={canvasTheme}
                         style={{
                             ...commonStyles,
@@ -211,6 +216,7 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
                         children={component.children || []}
                         builderContext={builderContext}
                         theme={theme}
+                        activeThemeObject={activeThemeObject}
                         canvasTheme={canvasTheme}
                         style={{
                             ...commonStyles,

@@ -11,7 +11,7 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
     <form
       onSubmit={(e) => e.preventDefault()}
       style={{
-        padding: commonStyles.paddingTop ? undefined : '20px',
+        padding: commonStyles.paddingTop ? undefined : (commonStyles.formPadding || '20px'),
         paddingTop: commonStyles.paddingTop,
         paddingRight: commonStyles.paddingRight,
         paddingBottom: commonStyles.paddingBottom,

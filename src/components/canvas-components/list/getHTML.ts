@@ -6,7 +6,7 @@ export const getHTML = (component: CanvasComponent): string => {
   const styles = extractCommonStyles(props);
   const listType = (props.listType as string) || 'unordered';
   const tag = listType === 'ordered' ? 'ol' : 'ul';
-  
+
   const styleString = [
     'margin: 0',
     styles.marginTop ? `margin-top: ${styles.marginTop}` : '',
@@ -30,10 +30,11 @@ export const getHTML = (component: CanvasComponent): string => {
   ].filter(Boolean).join('; ');
 
   // Default items if no children
+  const spacing = styles.listItemSpacing || '4px';
   const itemsHTML = `
-    <li style="margin-bottom: 4px">Item 1</li>
-    <li style="margin-bottom: 4px">Item 2</li>
-    <li style="margin-bottom: 4px">Item 3</li>
+    <li style="margin-bottom: ${spacing}">Item 1</li>
+    <li style="margin-bottom: ${spacing}">Item 2</li>
+    <li style="margin-bottom: ${spacing}">Item 3</li>
   `;
 
   return `<${tag} style="${styleString}">${itemsHTML}</${tag}>`;

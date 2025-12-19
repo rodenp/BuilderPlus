@@ -1,19 +1,19 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useDrop } from 'react-dnd';
-import { Sun, Moon, Monitor, Tablet, Smartphone } from 'lucide-react';
-import type { Theme } from '../panels/property-panel/theme';
+import { Monitor, Tablet, Smartphone } from 'lucide-react';
+import type { Theme as UITheme } from '../panels/property-panel/theme';
 import type { BodySettings } from '../../types/bodySettings';
 import type { CanvasComponent } from '../../types/component-types';
 import { CanvasComponentRenderer } from './CanvasComponentRenderer';
 import { SelectionOverlay } from './SelectionOverlay';
 import { DragTypes } from '../../types/dnd-types';
+import { globalThemeRegistry } from '../../core/theme-registry';
 
 type DeviceType = 'desktop' | 'tablet' | 'mobile';
 
 interface CanvasProps {
-    isCanvasDark: boolean;
-    onCanvasDarkToggle?: () => void;
-    theme: Theme;
+    onCanvasThemeChange?: (themeId: string) => void;
+    theme: UITheme;
     bodySettings: BodySettings;
     components: CanvasComponent[];
     onComponentsChange?: (components: CanvasComponent[]) => void;
@@ -25,8 +25,7 @@ interface CanvasProps {
 
 export const Canvas: React.FC<CanvasProps> = (props) => {
     const {
-        isCanvasDark,
-        onCanvasDarkToggle,
+        onCanvasThemeChange,
         theme,
         bodySettings,
         components,
@@ -48,13 +47,40 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
         }
     };
 
-    // Get default colors based on canvas dark/light mode
-    const activeTheme = isCanvasDark ? (bodySettings.theme?.dark || {}) : (bodySettings.theme?.light || {});
+    // Resolve the active theme from registry or custom themes
+    const activeThemeObject = useMemo(() => {
+        const systemTheme = globalThemeRegistry.getTheme(bodySettings.activeCanvasThemeId);
+        let baseTheme = systemTheme;
+
+        if (!baseTheme) {
+            baseTheme = bodySettings.customThemes.find(t => t.id === bodySettings.activeCanvasThemeId) ||
+                globalThemeRegistry.getTheme('light')!;
+        }
+
+        // Apply global styles override on top
+        if (bodySettings.styleOverrides && Object.keys(bodySettings.styleOverrides).length > 0) {
+            return {
+                ...baseTheme,
+                styles: {
+                    ...baseTheme.styles,
+                    ...bodySettings.styleOverrides
+                }
+            };
+        }
+
+        return baseTheme;
+    }, [bodySettings.activeCanvasThemeId, bodySettings.customThemes, bodySettings.styleOverrides]);
+
+    // Derive "isDark" for UI contrast (overlays, drop zones)
+    // Heuristic: theme id contains 'dark' or we could check backgroundColor brightness
+    const isCanvasDark = bodySettings.activeCanvasThemeId === 'dark' ||
+        bodySettings.activeCanvasThemeId.includes('dark');
+
     const canvasTheme = {
-        bg: (activeTheme.backgroundColor as string) || (isCanvasDark ? '#1e1e1e' : '#ffffff'),
-        text: (activeTheme.textColor as string) || (isCanvasDark ? '#e5e5e5' : '#171717'),
-        link: (activeTheme.linkColor as string) || (isCanvasDark ? '#60a5fa' : '#2563eb'),
-        primary: (activeTheme.primaryColor as string) || (isCanvasDark ? '#3b82f6' : '#2563eb'),
+        bg: (activeThemeObject.styles.backgroundColor as string) || (isCanvasDark ? '#1e1e1e' : '#ffffff'),
+        text: (activeThemeObject.styles.textColor as string) || (isCanvasDark ? '#e5e5e5' : '#171717'),
+        link: (activeThemeObject.styles.linkColor as string) || (isCanvasDark ? '#60a5fa' : '#2563eb'),
+        primary: (activeThemeObject.styles.primaryColor as string) || (isCanvasDark ? '#3b82f6' : '#2563eb'),
     };
 
     const toolbarButtonStyle = (isActive: boolean): React.CSSProperties => ({
@@ -135,27 +161,27 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                     </button>
                 </div>
 
-                {/* Canvas dark mode toggle */}
+                {/* Canvas Theme Selector */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '12px', color: theme.textMuted }}>Canvas:</span>
-                    <button
-                        onClick={onCanvasDarkToggle}
+                    <span style={{ fontSize: '12px', color: theme.textMuted }}>Theme:</span>
+                    <select
+                        value={bodySettings.activeCanvasThemeId}
+                        onChange={(e) => onCanvasThemeChange?.(e.target.value)}
                         style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            padding: '6px 10px',
+                            padding: '4px 8px',
                             borderRadius: '6px',
                             border: `1px solid ${theme.border}`,
                             backgroundColor: theme.bgSecondary,
-                            color: isCanvasDark ? '#facc15' : theme.textMuted,
-                            cursor: 'pointer',
+                            color: theme.text,
                             fontSize: '12px',
+                            outline: 'none',
+                            cursor: 'pointer'
                         }}
-                        title={isCanvasDark ? 'Switch canvas to light' : 'Switch canvas to dark'}
                     >
-                        {isCanvasDark ? <><Moon style={{ width: 14, height: 14 }} /> Dark</> : <><Sun style={{ width: 14, height: 14 }} /> Light</>}
-                    </button>
+                        {[...globalThemeRegistry.getAllThemes(), ...bodySettings.customThemes].map(t => (
+                            <option key={t.id} value={t.id}>{t.name}</option>
+                        ))}
+                    </select>
                 </div>
             </div>
 
@@ -176,23 +202,26 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                     className={`transition-colors duration-300 ${isOver ? 'ring-2 ring-blue-500 ring-inset' : ''} ${isCanvasDark ? 'dark-canvas' : 'light-canvas'}`}
                     style={{
                         width: getCanvasWidth(),
-                        maxWidth: deviceType === 'desktop' ? 'none' : getCanvasWidth(),
-                        minHeight: '100vh',
-                        backgroundColor: canvasTheme.bg,
+                        maxWidth: activeThemeObject.styles.maxWidth as string || (deviceType === 'desktop' ? 'none' : getCanvasWidth()),
+                        margin: activeThemeObject.styles.margin as string || '0 auto',
+                        padding: activeThemeObject.styles.sectionPadding as string || '40px 20px',
+                        minHeight: activeThemeObject.styles.minHeight as string || '100vh',
+                        backgroundColor: activeThemeObject.styles.backgroundColor as string || canvasTheme.bg,
                         color: canvasTheme.text,
-                        backgroundImage: activeTheme.backgroundImage ? `url(${activeTheme.backgroundImage})` : undefined,
-                        backgroundSize: (activeTheme.backgroundSize as string) || 'cover',
-                        backgroundPosition: (activeTheme.backgroundPosition as string) || 'center',
-                        backgroundRepeat: (activeTheme.backgroundRepeat as string) || 'no-repeat',
+                        backgroundImage: activeThemeObject.styles.backgroundImage ? `url(${activeThemeObject.styles.backgroundImage})` : undefined,
+                        backgroundSize: (activeThemeObject.styles.backgroundSize as string) || 'cover',
+                        backgroundPosition: (activeThemeObject.styles.backgroundPosition as string) || 'center',
+                        backgroundRepeat: (activeThemeObject.styles.backgroundRepeat as string) || 'no-repeat',
                         transition: 'width 0.3s ease, background-color 0.3s ease',
                         overflow: 'visible',
-                        fontFamily: `'${activeTheme.fontFamily || 'Inter'}', system-ui, sans-serif`,
-                        fontSize: activeTheme.fontSize ? (typeof activeTheme.fontSize === 'number' || !activeTheme.fontSize.toString().match(/[a-z%]/i) ? `${activeTheme.fontSize}px` : activeTheme.fontSize.toString()) : '16px',
-                        lineHeight: (activeTheme.lineHeight as string) || '1.5',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'flex-start',
-                        alignItems: 'stretch',
+                        fontFamily: `'${activeThemeObject.styles.fontFamily || 'Inter'}', system-ui, sans-serif`,
+                        fontSize: activeThemeObject.styles.fontSize ? (typeof activeThemeObject.styles.fontSize === 'number' || !activeThemeObject.styles.fontSize.toString().match(/[a-z%]/i) ? `${activeThemeObject.styles.fontSize}px` : activeThemeObject.styles.fontSize.toString()) : '16px',
+                        lineHeight: (activeThemeObject.styles.lineHeight as string) || '1.5',
+                        display: activeThemeObject.styles.display as string || 'flex',
+                        flexDirection: activeThemeObject.styles.flexDirection as any || 'column',
+                        justifyContent: activeThemeObject.styles.justifyContent as string || 'flex-start',
+                        alignItems: activeThemeObject.styles.alignItems as string || 'stretch',
+                        gap: activeThemeObject.styles.gap as string,
                         position: 'relative',
                         boxShadow: '0 0 20px rgba(0,0,0,0.1)', // Subtle shadow
                     }}
@@ -205,6 +234,7 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                             parentId={null}
                             builderContext={builderContext}
                             theme={theme} // Pass theme for styling
+                            activeThemeObject={activeThemeObject}
                             canvasTheme={canvasTheme}
                         />
                     ))}

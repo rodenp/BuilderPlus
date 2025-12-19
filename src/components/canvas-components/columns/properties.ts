@@ -1,8 +1,13 @@
 import { createComponentProperties, type PropertyField } from '../properties';
+import type { StylePropertyDefinition } from '../../../config/style-properties';
 
 const contentFields: PropertyField[] = [
   { key: 'columns', label: 'Columns', type: 'number', defaultValue: 2, group: 'content' },
   { key: 'gap', label: 'Gap', type: 'number', defaultValue: 16, group: 'content' },
+];
+
+export const styleProperties: StylePropertyDefinition[] = [
+  { key: 'columnGap', label: 'Column Gap', type: 'text', group: 'Layout', systemFallback: '16px' },
 ];
 
 export const properties = createComponentProperties(contentFields, [], [], true);

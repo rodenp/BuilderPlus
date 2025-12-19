@@ -8,18 +8,12 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   const { props } = component;
   const level = (props.level as string) || 'h2';
 
-  const fontSizes: Record<string, string> = {
-    h1: '36px',
-    h2: '30px',
-    h3: '24px',
-    h4: '20px',
-    h5: '18px',
-    h6: '16px',
-  };
+  // Use themeable font sizes if available, otherwise fallback to standard values
+  const fontSize = commonStyles[`${level}FontSize` as string] || commonStyles.fontSize || '24px';
 
   const headingStyle: React.CSSProperties = {
-    fontSize: fontSizes[level] || '24px',
-    fontWeight: 600,
+    fontSize: fontSize,
+    fontWeight: commonStyles.headingFontWeight || 600,
     margin: 0,
     ...commonStyles
   };

@@ -13,7 +13,7 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
       style={{
         ...commonStyles,
         height: commonStyles.height || (props.height as string) || '32px',
-        backgroundColor: commonStyles.backgroundColor || `${canvasTheme.text}05`,
+        backgroundColor: commonStyles.backgroundColor || commonStyles.spacerBg || `${canvasTheme.text}05`,
         borderRadius: commonStyles.borderRadius || '4px',
       }}
     />

@@ -4,9 +4,9 @@ import { extractCommonStyles } from '../types';
 export const getHTML = (component: CanvasComponent): string => {
   const { props } = component;
   const styles = extractCommonStyles(props);
-  
+
   const styleString = [
-    `padding: ${styles.paddingTop ? `${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}` : '40px 24px'}`,
+    `padding: ${styles.paddingTop ? `${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}` : (styles.sectionPadding || '40px 24px')}`,
     `background-color: ${styles.backgroundColor || 'transparent'}`,
     `min-height: 100px`,
     styles.width ? `width: ${styles.width}` : '',

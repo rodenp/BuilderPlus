@@ -8,6 +8,9 @@ import type { ComponentCategory } from '../../types/component-types';
 // PUBLIC API - Types for consuming applications
 // ============================================================================
 
+import type { StylePropertyDefinition } from '../../config/style-properties';
+import { globalStyleRegistry } from '../../config/style-properties';
+
 /**
  * Configuration for registering a new component
  */
@@ -32,6 +35,8 @@ export interface ComponentConfig {
   isContainer?: boolean;
   /** Default property values */
   defaultProps: Record<string, unknown>;
+  /** stylistic property metadata for this component */
+  styleProperties?: StylePropertyDefinition[];
   /** Optional: Create default children when component is added */
   createChildren?: (parentId: string) => ChildComponentConfig[];
 }
@@ -150,6 +155,7 @@ export function registerComponent(config: ComponentConfig): void {
     propertyGroups = [],
     isContainer = false,
     defaultProps,
+    styleProperties = [],
     createChildren,
   } = config;
 
@@ -206,6 +212,11 @@ export function registerComponent(config: ComponentConfig): void {
     Renderer,
     properties: componentProperties,
   });
+
+  // Register style metadata with the global registry
+  if (styleProperties.length > 0) {
+    globalStyleRegistry.registerStyleFields(styleProperties);
+  }
 
   // Store definition for components panel
   definitions.push({ type, label, category, icon, description });

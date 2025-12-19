@@ -7,6 +7,8 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   commonStyles,
 }) => {
   const { props } = component;
+  const quoteBorderColor = commonStyles.quoteBorderColor || (props.borderColor as string) || `${canvasTheme.text}30`;
+  const quoteBg = commonStyles.quoteBg || commonStyles.backgroundColor || `${canvasTheme.text}05`;
 
   return (
     <blockquote
@@ -15,14 +17,14 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
         margin: 0,
         marginTop: commonStyles.marginTop || '16px',
         marginBottom: commonStyles.marginBottom || '16px',
-        paddingTop: commonStyles.paddingTop || '12px',
-        paddingRight: commonStyles.paddingRight || '20px',
-        paddingBottom: commonStyles.paddingBottom || '12px',
-        paddingLeft: commonStyles.paddingLeft || '20px',
-        borderLeft: `4px solid ${(props.borderColor as string) || canvasTheme.text + '30'}`,
-        backgroundColor: commonStyles.backgroundColor || `${canvasTheme.text}05`,
+        paddingTop: commonStyles.paddingTop,
+        paddingRight: commonStyles.paddingRight,
+        paddingBottom: commonStyles.paddingBottom,
+        paddingLeft: commonStyles.paddingLeft || '24px',
+        borderLeft: `4px solid ${quoteBorderColor}`,
+        backgroundColor: quoteBg,
         color: commonStyles.color || canvasTheme.text,
-        fontStyle: 'italic',
+        fontStyle: (commonStyles.quoteFontStyle as any) || 'italic',
       }}
     >
       <p style={{ margin: 0 }}>{(props.text as string) || 'This is a quote.'}</p>

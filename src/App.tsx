@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Header } from './components/layout/Header';
@@ -7,11 +7,11 @@ import { SideMenu } from './components/layout/SideMenu';
 import { SettingsPanel } from './components/layout/SettingsPanel';
 import { PreviewMode } from './components/layout/PreviewMode';
 import type { PanelPosition } from './components/layout/SettingsPanel';
-import { PropertyPanel, getTheme } from './components/panels/property-panel';
+import { PropertyPanel } from './components/panels/property-panel';
 import { BodyPanel } from './components/panels/BodyPanel';
 import { ContentPanel } from './components/panels/ContentPanel';
 import { ProjectsPage } from './components/pages/ProjectsPage';
-import { defaultBodySettings } from './types/bodySettings';
+import { defaultBodySettings, migrateBodySettings } from './types/bodySettings';
 import type { BodySettings } from './types/bodySettings';
 import type { CanvasComponent } from './types/component-types';
 import type { Project } from './types/project';
@@ -21,11 +21,11 @@ import './MockupTheme.css'; // Global scope for Mockup theme
 
 import { MediaGallery } from './components/panels/MediaGallery';
 import { ThemePanel } from './components/panels/ThemePanel';
+import { globalThemeRegistry } from './core/theme-registry';
 import type { MediaItem, MediaType } from './types/media';
 import { X } from 'lucide-react';
 
-type MenuTab = 'content' | 'blocks' | 'body' | 'theme' | 'media';
-type AppPage = 'projects' | 'editor';
+import type { MenuTab, AppPage } from './types/ui-types';
 
 function App() {
 
@@ -39,7 +39,7 @@ function App() {
   // UI dark mode
   const [isDarkMode, setIsDarkMode] = useState(true);
   // Canvas dark mode
-  const [isCanvasDark, setIsCanvasDark] = useState(false);
+
 
   // Apply dark mode class to html element
   useEffect(() => {
@@ -156,7 +156,67 @@ function App() {
     setMediaPickerCallback(null);
   }, [mediaPickerCallback]);
 
-  const theme = getTheme(isDarkMode);
+
+  const isCanvasDark = bodySettings.activeCanvasThemeId === 'dark' ||
+    bodySettings.activeCanvasThemeId.includes('dark');
+
+  // MERGE REGISTRY AND CUSTOM THEMES for UI resolution
+  const allThemes = useMemo(() => {
+    return [...globalThemeRegistry.getAllThemes(), ...bodySettings.customThemes];
+  }, [bodySettings.customThemes]);
+
+  const activeUITheme = useMemo(() => {
+    // Find the theme or fallback to dark if explicit, or just first available
+    return allThemes.find(t => t.id === bodySettings.activeUIThemeId) ||
+      allThemes.find(t => t.id === 'dark') ||
+      allThemes[0];
+  }, [allThemes, bodySettings.activeUIThemeId]);
+
+  // Adapter to convert our "Content Theme" (GlobalStyles) to "UI Theme" (Legacy PropertyPanel Theme)
+  const theme = useMemo(() => {
+    const mode = activeUITheme.mode || 'light';
+    const styles = activeUITheme.styles;
+
+    // Fallbacks if styles are missing (e.g. newly created theme)
+    const baseBg = styles.backgroundColor || (mode === 'dark' ? '#0f172a' : '#ffffff');
+    const baseText = styles.textColor || (mode === 'dark' ? '#f1f5f9' : '#0f172a');
+    const basePrimary = styles.primaryColor || '#0ea5e9';
+
+    // Simple derivation for secondary surfaces (not perfect but functional)
+    const bgSecondary = mode === 'dark' ? '#1e293b' : '#f1f5f9';
+    const widthBorder = mode === 'dark' ? '#334155' : '#e2e8f0';
+
+    return {
+      mode: mode,
+      bg: baseBg,
+      bgSecondary: bgSecondary,
+      bgTertiary: mode === 'dark' ? '#334155' : '#e2e8f0',
+      text: String(baseText),
+      textSecondary: mode === 'dark' ? '#cbd5e1' : '#475569',
+      textMuted: mode === 'dark' ? '#94a3b8' : '#64748b',
+      border: (styles.borderColor as string) || widthBorder,
+      borderSecondary: mode === 'dark' ? '#475569' : '#cbd5e1',
+      primary: String(basePrimary),
+      primaryBg: mode === 'dark' ? 'rgba(14, 165, 233, 0.2)' : '#e0f2fe',
+      primaryText: mode === 'dark' ? '#7dd3fc' : '#0369a1',
+
+      // Box model generic
+      marginBg: mode === 'dark' ? 'rgba(251, 191, 36, 0.15)' : '#fef3c7',
+      marginBorder: mode === 'dark' ? 'rgba(251, 191, 36, 0.4)' : '#fcd34d',
+      marginText: '#fbbf24',
+      paddingBg: mode === 'dark' ? 'rgba(52, 211, 153, 0.15)' : '#d1fae5',
+      paddingBorder: mode === 'dark' ? 'rgba(52, 211, 153, 0.4)' : '#6ee7b7',
+      paddingText: '#34d399',
+      contentBg: mode === 'dark' ? 'rgba(59, 130, 246, 0.15)' : '#dbeafe',
+      contentBorder: mode === 'dark' ? 'rgba(59, 130, 246, 0.4)' : '#93c5fd',
+      contentText: '#60a5fa',
+    };
+  }, [activeUITheme]);
+
+  // Sync isDarkMode state for Header toggle (backward compatibility)
+  useEffect(() => {
+    setIsDarkMode(activeUITheme.mode === 'dark');
+  }, [activeUITheme.mode]);
 
   // Context value to pass down for DnD operations
   const builderContext = {
@@ -219,7 +279,6 @@ function App() {
               theme={theme}
               bodySettings={bodySettings}
               onBodySettingsChange={setBodySettings}
-              isCanvasDark={isCanvasDark}
             />
           </div>
         );
@@ -230,7 +289,6 @@ function App() {
               theme={theme}
               bodySettings={bodySettings}
               onBodySettingsChange={setBodySettings}
-              isCanvasDark={isCanvasDark}
             />
           </div>
         );
@@ -260,7 +318,9 @@ function App() {
           setCurrentProject(project);
           setCurrentPage('editor');
           if (project.data.components) setComponents(project.data.components);
-          if (project.data.bodySettings) setBodySettings(project.data.bodySettings);
+          if (project.data.bodySettings) {
+            setBodySettings(migrateBodySettings(project.data.bodySettings));
+          }
           // Initialize media items if present, or empty
           setMediaItems(project.data.mediaItems || []);
         }}
@@ -298,8 +358,7 @@ function App() {
       return (
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           <Canvas
-            isCanvasDark={isCanvasDark}
-            onCanvasDarkToggle={() => setIsCanvasDark(!isCanvasDark)}
+            onCanvasThemeChange={(newId) => setBodySettings(prev => ({ ...prev, activeCanvasThemeId: newId }))}
             theme={theme}
             bodySettings={bodySettings}
             components={components}
@@ -330,8 +389,7 @@ function App() {
     const canvas = (
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <Canvas
-          isCanvasDark={isCanvasDark}
-          onCanvasDarkToggle={() => setIsCanvasDark(!isCanvasDark)}
+          onCanvasThemeChange={(newId) => setBodySettings(prev => ({ ...prev, activeCanvasThemeId: newId }))}
           theme={theme}
           bodySettings={bodySettings}
           components={components}

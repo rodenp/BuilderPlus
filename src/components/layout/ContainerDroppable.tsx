@@ -2,7 +2,8 @@ import React, { useRef } from 'react';
 import { useDrop } from 'react-dnd';
 import { DragTypes } from '../../types/dnd-types';
 import type { CanvasComponent } from '../../types/component-types';
-import type { Theme } from '../panels/property-panel/theme';
+import type { Theme as UITheme } from '../panels/property-panel/theme';
+import type { Theme } from '../../types/theme';
 import type { CanvasTheme } from '../../components/canvas-components/types';
 import { CanvasComponentRenderer } from './CanvasComponentRenderer';
 import { validationRegistry } from '../../registries/validation-registry';
@@ -12,7 +13,8 @@ interface ContainerDroppableProps {
     containerType: string; // Added validation prop
     children: CanvasComponent[];
     builderContext: any;
-    theme: Theme;
+    theme: UITheme;
+    activeThemeObject: Theme;
     canvasTheme: CanvasTheme;
     style?: React.CSSProperties;
     className?: string;
@@ -25,6 +27,7 @@ export const ContainerDroppable: React.FC<ContainerDroppableProps> = ({
     children,
     builderContext,
     theme,
+    activeThemeObject,
     canvasTheme,
     style,
     className,
@@ -89,6 +92,7 @@ export const ContainerDroppable: React.FC<ContainerDroppableProps> = ({
                     parentId={containerId}
                     builderContext={builderContext}
                     theme={theme}
+                    activeThemeObject={activeThemeObject}
                     canvasTheme={canvasTheme}
                     parentFlexDirection={(style as any)?.flexDirection} // Pass self direction
                 />

@@ -10,9 +10,9 @@ export const getHTML = (component: CanvasComponent, isExport: boolean = true): s
   const styleProps = {
     backgroundColor: styles.backgroundColor || `rgba(0,0,0,0.05)`,
     borderRadius: styles.borderRadius ? `${styles.borderRadius}px` : '8px',
-    padding: styles.paddingTop ? 
-      `${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}` : 
-      '40px',
+    padding: styles.paddingTop ?
+      `${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}` :
+      (styles.mediaPlaceholderPadding || '40px'),
     textAlign: 'center' as const,
     color: styles.color || '#000000',
     width: styles.width || undefined,
@@ -42,8 +42,8 @@ export const getHTML = (component: CanvasComponent, isExport: boolean = true): s
     if (isVideoPlatformUrl(src)) {
       if (isExport) {
         // For exported HTML, show a clickable link since iframes don't work in file:// protocol
-        const videoTitle = src.includes('youtube.com') ? 'YouTube Video' : 
-                          src.includes('vimeo.com') ? 'Vimeo Video' : 'Video';
+        const videoTitle = src.includes('youtube.com') ? 'YouTube Video' :
+          src.includes('vimeo.com') ? 'Vimeo Video' : 'Video';
         return `<div style="${styleString}">
   <div style="padding: 60px 20px; border: 2px dashed #ccc; border-radius: 8px; background: #f9f9f9;">
     <div style="margin-bottom: 16px;">

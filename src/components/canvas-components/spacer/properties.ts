@@ -1,7 +1,12 @@
 import { createComponentProperties, type PropertyField } from '../properties';
+import type { StylePropertyDefinition } from '../../../config/style-properties';
 
 const contentFields: PropertyField[] = [
   { key: 'height', label: 'Height', type: 'number', defaultValue: 24, group: 'content' },
+];
+
+export const styleProperties: StylePropertyDefinition[] = [
+  { key: 'spacerBg', label: 'Spacer Background', type: 'color', group: 'Colors', systemFallback: 'rgba(0,0,0,0.02)' },
 ];
 
 export const properties = createComponentProperties(contentFields);

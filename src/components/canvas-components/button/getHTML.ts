@@ -4,10 +4,10 @@ import { extractCommonStyles } from '../types';
 export const getHTML = (component: CanvasComponent): string => {
   const { props } = component;
   const styles = extractCommonStyles(props);
-  
+
   const styleString = [
     'display: inline-block',
-    styles.paddingTop 
+    styles.paddingTop
       ? `padding: ${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}`
       : 'padding: 12px 24px',
     `background-color: ${styles.backgroundColor || '#2563eb'}`,
@@ -17,8 +17,8 @@ export const getHTML = (component: CanvasComponent): string => {
       : 'border: none',
     `border-radius: ${styles.borderRadius || '8px'}`,
     'cursor: pointer',
-    'font-size: 14px',
-    'font-weight: 500',
+    `font-size: ${styles.buttonFontSize || '14px'}`,
+    `font-weight: ${styles.buttonFontWeight || 500}`,
     styles.marginTop ? `margin-top: ${styles.marginTop}` : '',
     styles.marginRight ? `margin-right: ${styles.marginRight}` : '',
     styles.marginBottom ? `margin-bottom: ${styles.marginBottom}` : '',

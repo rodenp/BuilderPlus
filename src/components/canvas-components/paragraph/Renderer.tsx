@@ -11,8 +11,8 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
     <div
       style={{
         ...commonStyles,
-        // fontSize: '14px', // Removed to follow inherited/prop styles
-        // lineHeight: 1.6,  // Removed to follow inherited/prop styles
+        fontSize: commonStyles.paragraphFontSize || commonStyles.fontSize || '14px',
+        lineHeight: commonStyles.paragraphLineHeight || commonStyles.lineHeight || 1.6,
         margin: 0,
         height: commonStyles.height, // Must be set for overflow to work
         maxHeight: (props.maxHeight as string) || undefined,

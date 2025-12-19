@@ -1,4 +1,5 @@
 import { createComponentProperties, type PropertyField } from '../properties';
+import type { StylePropertyDefinition } from '../../../config/style-properties';
 
 const contentFields: PropertyField[] = [
   {
@@ -16,7 +17,14 @@ const contentFields: PropertyField[] = [
   },
 ];
 
-export const properties = createComponentProperties(contentFields, [], [], true);
+export const styleProperties: StylePropertyDefinition[] = [
+  { key: 'containerBorderRadius', label: 'Container Corner Radius', type: 'text', group: 'Layout & Spacing', systemFallback: '4px' },
+];
+
+export const properties = createComponentProperties(contentFields, [], [], true, {
+  padding: { themeKey: 'containerPadding' },
+  backgroundColor: { themeKey: 'containerBg' }
+});
 
 export const defaultProps = {
   display: 'flex',

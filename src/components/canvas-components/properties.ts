@@ -21,6 +21,7 @@ export interface PropertyField {
   options?: { label: string; value: string }[];
   placeholder?: string;
   group?: string;
+  themeKey?: string; // Links to global theme property (e.g., 'buttonPadding')
 }
 
 export interface PropertyGroup {
@@ -37,7 +38,7 @@ export interface ComponentProperties {
 // Base properties that all components share
 export const baseSpacingFields: PropertyField[] = [
   { key: 'margin', label: 'Margin', type: 'spacing', group: 'spacing' },
-  { key: 'padding', label: 'Padding', type: 'spacing', group: 'spacing' },
+  { key: 'padding', label: 'Padding', type: 'spacing', group: 'spacing', themeKey: 'containerPadding' },
 ];
 
 export const baseSizeFields: PropertyField[] = [
@@ -55,13 +56,13 @@ export const baseBorderFields: PropertyField[] = [
       { label: 'None', value: 'none' },
     ]
   },
-  { key: 'borderColor', label: 'Border Color', type: 'color', group: 'border' },
-  { key: 'borderRadius', label: 'Border Radius', type: 'number', defaultValue: 0, group: 'border' },
+  { key: 'borderColor', label: 'Border Color', type: 'color', group: 'border', themeKey: 'borderColor' },
+  { key: 'borderRadius', label: 'Border Radius', type: 'number', defaultValue: 0, group: 'border', themeKey: 'borderRadius' },
 ];
 
 export const baseColorFields: PropertyField[] = [
-  { key: 'backgroundColor', label: 'Background', type: 'color', group: 'colors' },
-  { key: 'color', label: 'Text Color', type: 'color', group: 'colors' },
+  { key: 'backgroundColor', label: 'Background', type: 'color', group: 'colors', themeKey: 'backgroundColor' },
+  { key: 'color', label: 'Text Color', type: 'color', group: 'colors', themeKey: 'textColor' },
 ];
 
 export const baseLayoutFields: PropertyField[] = [
@@ -117,8 +118,27 @@ export const createComponentProperties = (
   contentFields: PropertyField[],
   additionalGroups: PropertyGroup[] = [],
   additionalFields: PropertyField[] = [],
-  includeLayout = false
+  includeLayout = false,
+  fieldOverrides: Record<string, Partial<PropertyField>> = {}
 ): ComponentProperties => {
+  const baseFields = [
+    ...contentFields,
+    ...baseSpacingFields,
+    ...baseSizeFields,
+    ...baseColorFields,
+    ...baseBorderFields,
+    ...(includeLayout ? baseLayoutFields : []),
+    ...additionalFields,
+  ];
+
+  // Apply overrides
+  const fields = baseFields.map(field => {
+    if (fieldOverrides[field.key]) {
+      return { ...field, ...fieldOverrides[field.key] };
+    }
+    return field;
+  });
+
   return {
     groups: [
       ...commonGroups.filter(g =>
@@ -126,14 +146,6 @@ export const createComponentProperties = (
       ),
       ...additionalGroups,
     ],
-    fields: [
-      ...contentFields,
-      ...baseSpacingFields,
-      ...baseSizeFields,
-      ...baseColorFields,
-      ...baseBorderFields,
-      ...(includeLayout ? baseLayoutFields : []),
-      ...additionalFields,
-    ],
+    fields,
   };
 };

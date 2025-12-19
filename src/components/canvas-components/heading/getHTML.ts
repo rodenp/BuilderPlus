@@ -5,19 +5,11 @@ export const getHTML = (component: CanvasComponent): string => {
   const { props } = component;
   const styles = extractCommonStyles(props);
   const level = (props.level as string) || 'h2';
-  
-  const fontSizes: Record<string, string> = {
-    h1: '36px',
-    h2: '30px',
-    h3: '24px',
-    h4: '20px',
-    h5: '18px',
-    h6: '16px',
-  };
+  const fontSize = styles[`${level}FontSize` as string] || styles.fontSize || '24px';
 
   const styleString = [
-    `font-size: ${fontSizes[level] || '24px'}`,
-    'font-weight: 600',
+    `font-size: ${fontSize}`,
+    `font-weight: ${styles.headingFontWeight || 600}`,
     styles.color ? `color: ${styles.color}` : '',
     'margin: 0',
     styles.marginTop ? `margin-top: ${styles.marginTop}` : '',
@@ -33,6 +25,6 @@ export const getHTML = (component: CanvasComponent): string => {
   ].filter(Boolean).join('; ');
 
   const text = (props.text as string) || 'Heading';
-  
+
   return `<${level} style="${styleString}">${text}</${level}>`;
 };

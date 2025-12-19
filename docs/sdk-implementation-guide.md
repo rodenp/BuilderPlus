@@ -1,343 +1,225 @@
-# Comprehensive Global Defaults & Extensibility Plan
+# SDK & Extensibility Guide
 
-## Goal
-Establish a comprehensive "Global Styles Repository" that acts as the source of truth for all available styling properties in the application. Ensure the system is easily extensible, allowing developers to add new properties (like Shadows, Transforms, Filters) without rewriting UI logic.
+## Core Architecture
+The builder is built as a modular library (`@builder-plus/core`) where every component and stylistic property is dynamically registered. The "Active Theme" serves as the primary source of truth for all component styles.
 
-## 1. Data Model Strategy (The Repository)
-We will expand `GlobalStyles` in `src/types/bodySettings.ts` to cover the full spectrum of CSS capabilities.
-*   **Concept**: A flat or nested interface representing every styleable attribute.
-*   **Default State**: All values are optional (`?: string`) and `undefined` by default, meaning "no global override".
+## 1. Global Style Registry
+The `StyleRegistry` is a dynamic, authoritative superset of all styling capabilities. It ensures that any property used by a component can be globally managed via the **Theme Panel**.
 
-### Proposed structure for `GlobalStyles`:
+### Standard Property Definition
 ```typescript
-export interface GlobalStyles {
-  // Layout
-  display?: string;
-  flexDirection?: string;
-  justifyContent?: string;
-  alignItems?: string;
-  gap?: string;
-  padding?: string;
-  margin?: string;
-  
-  // Box Model
-  width?: string;
-  height?: string;
-  maxWidth?: string;
-  maxHeight?: string;
-  
-  // Borders
-  borderWidth?: string;
-  borderStyle?: string;
-  borderColor?: string;
-  borderRadius?: string;
-  
-  // Backgrounds & Effects
-  backgroundColor?: string;
-  opacity?: string;
-  boxShadow?: string;
-  
-  // Typography
-  fontFamily?: string;
-  fontSize?: string;
-  lineHeight?: string;
-  color?: string; // mapped to textColor
-  
-  // Transforms
-  transform?: string;
-  // ... and so on
+export interface StylePropertyDefinition {
+    key: string;              // The CSS property or custom style key
+    label: string;            // Human-readable label
+    type: PropertyFieldType;  // 'color', 'spacing', 'number', 'text', etc.
+    group: string;            // Grouping for the Theme Panel (e.g., 'Spacing')
+    systemFallback?: any;     // Absolute last-resort fallback value
+    options?: { label: string; value: string }[];
 }
 ```
 
-## 2. Extensible UI Strategy (BodyPanel)
-To avoid manually hardcoding hundreds of inputs, we will implement a **Configuration-Driven UI**.
+## 2. Dynamic Registration API
+To add new components, styles, or themes, use the public SDK APIs.
 
-### The `StyleConf` Registry
-We will create a `src/config/style-registry.ts` file. This is the "Suggestion for the Future" requested.
-It will export a configuration object defining all available properties, their types, and groupings.
-
-```typescript
-// Future-proof way to add properties:
-export const styleRegistry = [
-  {
-    group: 'Layout',
-    properties: [
-      { key: 'gap', label: 'Gap', type: 'text', placeholder: '16' },
-      { key: 'display', label: 'Display', type: 'select', options: ['flex', 'grid', 'block'] }
-    ]
-  },
-  {
-    group: 'Borders',
-    properties: [
-      { key: 'borderRadius', label: 'Radius', type: 'text', placeholder: '4' },
-      { key: 'borderColor', label: 'Color', type: 'color' }
-    ]
-  }
-];
-```
-
-### Benefits
-1.  **Easy Addition**: To add a new property (e.g., `textShadow`), you simply add one line to the registry. The UI automatically renders it.
-2.  **Consistency**: Ensures `BodyPanel` and `PropertyPanel` (in the future) can share the same definitions.
-
-## 3. Implementation Steps
-
-### Phase 1: The Repository
-- [ ] Refactor `src/types/bodySettings.ts` to include the exhaustive `GlobalStyles` interface.
-
-### Phase 2: The Registry (Future-Proofing)
-- [ ] Create `src/config/style-properties.ts` (or similar).
-- [ ] Define the schema for known properties (starting with the ones we have + the requested generic ones).
-
-### Phase 3: The Dynamic BodyPanel
-- [ ] Refactor `src/components/panels/BodyPanel.tsx`.
-- [ ] Replace hardcoded sections (where possible) with a map loop over the `styleRegistry`.
-- [ ] Maintain special robust components (like the Background Image picker) for complex inputs.
-
-### Phase 4: Integration
-- [ ] Ensure `CanvasComponentRenderer` spreads `bodySettings.globalStyles` into `themeDefaults`.
-- [ ] Verify inheritance works for a newly added complex property (e.g., `opacity`).
-
-## Dynamic Registration API (Plugin System)
-
-To avoid manual file edits and enable a plugin-friendly architecture, we will convert the static registry into a **Runtime Singleton Manager** and relax the Type definitions.
-
-### 1. Extensible Data Model (`GlobalStyles`)
-We will add an **Index Signature** to `GlobalStyles` to allow any string key. This enables plugins to save custom properties without TypeScript errors, while keeping the "Core" properties strictly typed for autocomplete.
+### Registering a Component (and its styles)
+Components register their *metadata* to ensure the Theme Panel can manage them.
 
 ```typescript
-export interface GlobalStyles {
-  // ... core properties like display, color, etc.
-  
-  // Allow dynamic extension
-  [key: string]: string | undefined; 
-}
-```
+import { registerComponent } from '@builder-plus/core';
 
-### 2. The Style Registry Manager
-We will refactor `src/config/style-properties.ts` to export a Singleton Class instead of a static array.
-
-```typescript
-class StyleRegistry {
-  private groups: StyleGroup[] = [...defaultGroups];
-
-  // Register a completely new group
-  registerGroup(group: StyleGroup) {
-    this.groups.push(group);
-  }
-
-  // Add a property to an existing group
-  addProperty(groupId: string, property: StylePropertyDefinition) {
-    const group = this.groups.find(g => g.id === groupId);
-    if (group) {
-      group.properties.push(property);
+registerComponent('custom-banner', {
+  Renderer: BannerRenderer,
+  styleProperties: [
+    { 
+      key: 'bannerShadow', 
+      label: 'Accent Shadow', 
+      type: 'text', 
+      group: 'Effects',
+      systemFallback: '0 4px 6px -1px rgba(0,0,0,0.1)' 
     }
+  ],
+  defaultProps: {
+    title: 'Hello World',
+    backgroundColor: 'primary'
   }
-  
-  // Get all groups
-  getGroups() {
-    return this.groups;
+});
+```
+
+### Registering a Theme
+Standard or brand-specific themes can be registered globally.
+
+```typescript
+import { registerTheme } from '@builder-plus/core';
+
+registerTheme('neon-night', {
+  id: 'neon-night',
+  name: 'Neon Night',
+  styles: {
+    primaryColor: '#00ffcc',
+    surfaceColor: '#0a0a0a',
+    textColor: '#ffffff',
+    borderColor: '#333333'
   }
-}
-
-export const globalStyleRegistry = new StyleRegistry();
+});
 ```
 
-### 3. Usage Implementation
-*   **Startup**: Components or plugins calls `globalStyleRegistry.addProperty(...)` on app initialization.
-*   **BodyPanel**: Uses `globalStyleRegistry.getGroups()` to render the UI.
-
-#### Real-World Example: Adding Text Shadow
-Here is how a "Text Effects Plugin" would register a new global property at runtime:
-
+### Registering Core Style Metadata
 ```typescript
-import { globalStyleRegistry } from './config/style-properties';
+import { registerStyleFields } from '@builder-plus/core';
 
-// In your plugin initialization or App.tsx
-export function registerTextEffects() {
-  // Add 'textShadow' to the existing 'global-typography' group
-  globalStyleRegistry.addProperty('global-typography', {
-    key: 'textShadow',
-    label: 'Text Shadow',
-    type: 'text', 
-    placeholder: '2px 2px 4px rgba(0,0,0,0.5)'
-  });
-  
-  console.log('Text Shadow property registered!');
-}
-```
-*Result: The "Text Shadow" input immediately appears in the Body Panel, and values are saved/inherited automatically.*
-
-### 4. Implementation Steps - Registration Refactor
-- [ ] **Modify Interface**: Add index signature `[key: string]: any` to `GlobalStyles` in `bodySettings.ts`.
-- [ ] **Create Manager**: Rewrite `style-properties.ts` to export a `StyleRegistry` class instance.
-- [ ] **Update Consumer**: Refactor `BodyPanel.tsx` to consume the registry via method calls.
-- [ ] **Export SDK**: Export `globalStyleRegistry` from `src/sdk.ts`.
-- [ ] **Verify**: Test adding a "Custom Property" at runtime (simulated) and verify it appears in the panel and saves.
-
-## Library Consumption & Extension
-
-This section demonstrates how **external applications** (consumers) can import `builderplus` and register their own global style properties.
-
-### Scenario: A "Theme Pack" Plugin
-Imagine an external app wants to add a "Glassmorphism" effect set using your builder.
-
-#### 1. Import the Registry
-The consumer imports the registry from the main SDK entry point.
-
-```typescript
-import { globalStyleRegistry } from 'builderplus/sdk'; // Assumptions on package export path
+registerStyleFields([
+  { key: 'pagePadding', label: 'Page Padding', type: 'spacing', group: 'Layout', systemFallback: '40' },
+  { key: 'siteMaxWidth', label: 'Max Width', type: 'text', group: 'Layout', systemFallback: '1200px' }
+]);
 ```
 
-#### 2. Register New Properties
-Calls to `addProperty` should happen before the Builder component is mounted.
+## 3. Style Inheritance & Themes
+Components do not hardcode Light/Dark values. Instead, they follow a hierarchy of style resolution provided by the core renderer.
+
+### Resolution Order:
+1.  **Manual Overrides**: Direct inline styles or user-forced values (Highest Priority).
+2.  **Component Props**: Specific values set on the individual component instance.
+3.  **Body/Page Overrides**: Page-level customizations set in the **Body Panel**.
+4.  **Active Theme (Project-Specific)**: Values from `bodySettings.customThemes` if the ID matches.
+5.  **Active Theme (Global Registry)**: Values from `themeRegistry` (e.g., 'Light', 'Dark').
+6.  **Component Defaults**: Defaults defined in the component's registration.
+7.  **Global System Defaults**: The baseline fallback defined in `style-properties.ts`.
+
+## 4. Component Implementation Pattern
+A well-implemented component uses the `styles` prop provided by the core renderer to automatically respect the active theme.
 
 ```typescript
-// theme-plugin.ts
-import { globalStyleRegistry } from 'builderplus/sdk';
-
-export function initializeGlassmorphism() {
-  // Create a new group for these special effects
-  globalStyleRegistry.registerGroup({
-    id: 'glass-effects',
-    title: 'Glassmorphism',
-    icon: 'Sparkles', // Uses Lucide icon name
-    properties: [
-      { 
-        key: 'backdropFilter', 
-        label: 'Blur Amount', 
-        type: 'text', 
-        placeholder: 'blur(10px)' 
-      },
-      { 
-        key: 'glowingBorder', // Custom key supported by index signature
-        label: 'Glow Color', 
-        type: 'color' 
-      }
-    ]
-  });
-}
+// YourComponentRenderer.tsx
+export const Renderer = ({ props, styles }) => {
+  return (
+    <button style={{
+      ...styles, // Spreads all active theme values
+      backgroundColor: props.backgroundColor || styles.primaryColor
+    }}>
+      {props.text}
+    </button>
+  );
+};
 ```
 
-#### 3. Mount the App
-The consumer initializes their plugins, then renders the Builder.
+## 5. Component Creation Blueprint
 
-```typescript
-// index.tsx (Consumer App)
+This is a complete, copy-pasteable example of how to add a new "Audio Track" component to the builder. This single file or module contains everything required for registration, rendering, and export.
+
+```tsx
 import React from 'react';
-import { Builder } from 'builderplus'; // Main component
-import { initializeGlassmorphism } from './theme-plugin';
+import { 
+  registerComponent, 
+  ContainerDroppable, 
+  type CanvasComponentProps 
+} from '@builder-plus/core';
 
-// 1. Register customizations
-initializeGlassmorphism();
+/**
+ * 1. THE RENDERER
+ * This is how the component looks on the Canvas.
+ * - 'props' are unique to this specific instance.
+ * - 'styles' are provided by the Active Theme (Colors, Border, etc.)
+ */
+const AudioRenderer: React.FC<CanvasComponentProps> = ({ props, styles }) => {
+  return (
+    <div style={{
+      ...styles, // Spreads theme background, border, padding, etc.
+      display: 'flex',
+      alignItems: 'center',
+      borderLeft: `4px solid ${styles.primaryColor || '#22c55e'}`,
+      opacity: props.isVisible ? 1 : 0.5
+    }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 'bold' }}>{props.title}</div>
+        <div style={{ fontSize: '12px', opacity: 0.7 }}>{props.artist}</div>
+      </div>
+      <div style={{ fontSize: '12px' }}>{props.duration}</div>
+    </div>
+  );
+};
 
-// 2. Render App
-ReactDOM.render(<Builder />, document.getElementById('root'));
-```
-
-
-## Component Registration Guide
-
-This section provides a cookbook for registering various types of components using the SDK, based on the **Mockup Example**.
-
-### 1. Basic Item (e.g., Audio Track)
-Items are leaf nodes. They receive `props` and `commonStyles`.
-
-```typescript
-registerPlugin({
-    type: 'audio',           // Unique ID
-    label: 'Audio',
-    icon: 'Music',           // Lucide icon definition
-    isContainer: false,
+/**
+ * 2. REGISTRATION
+ * Define the component metadata and tell the builder how to handle it.
+ */
+export function initCustomComponents() {
+  registerComponent('audio-track', {
+    label: 'Audio Track',
+    category: 'Media',
+    icon: 'Music', // Uses Lucide icon name
     
-    // Properties Panel Config
+    // The visual rendering function
+    Renderer: AudioRenderer,
+
+    // Define editable properties for the Property Panel
     properties: [
-        { key: 'title', label: 'Title', type: 'text', group: 'content' },
-        { key: 'duration', label: 'Duration', type: 'text', group: 'content' }
+      { key: 'title', label: 'Song Title', type: 'text', group: 'Content' },
+      { key: 'artist', label: 'Artist Name', type: 'text', group: 'Content' },
+      { key: 'duration', label: 'Duration', type: 'text', group: 'Content' },
+      { key: 'isVisible', label: 'Visible', type: 'boolean', group: 'Settings' }
     ],
-    
-    // Default Values
+
+    // These default values are used when a new item is dropped
     defaultProps: {
-        title: 'New Song',
-        duration: '3:00',
-        borderColor: '#22c55e', // Can utilize global style props
-        borderWidth: '0px 0px 0px 4px'
+      title: 'New Track',
+      artist: 'Unknown Artist',
+      duration: '0:00',
+      isVisible: true
     },
-    
-    // Render Function
-    render: ({ props, styles }) => (
-        <div style={{ ...styles, border: props.borderWidth }}> // Merge common styles
-            <span>{props.title}</span>
-            <span>{props.duration}</span>
-        </div>
-    ),
-    
-    // Export Logic
-    getHTML: async () => '<div>Audio</div>'
-});
-```
 
-### 2. Strict Container (e.g., Playlist)
-Containers hold other components. Use `allowedChildren` to enforce strict hierarchy (e.g. Playlists can only hold Audio tracks).
-
-```typescript
-registerPlugin({
-    type: 'playlist',
-    label: 'Playlist',
-    isContainer: true,
-    
-    // HIERARCHY ENFORCEMENT
-    allowedChildren: ['audio'], // Only allow 'audio' items to be dropped here
-    
-    // Custom Renderer using ContainerDroppable
-    customContainerRenderer: ({ component, builderContext, commonStyles }) => (
-        <div style={commonStyles}>
-            <h3>{component.props.title}</h3>
-            {/* The Drop Zone */}
-            <ContainerDroppable
-                containerId={component.id}
-                containerType={component.type}
-                children={component.children || []} // Pass children
-                builderContext={builderContext}
-            />
-        </div>
-    )
-});
-```
-
-### 3. Recursive Container (e.g., Folder)
-Containers can allow themselves as children to support infinite nesting.
-
-```typescript
-registerPlugin({
-    type: 'folder',
-    label: 'Folder',
-    isContainer: true,
-    
-    // Allow Files AND other Folders
-    allowedChildren: ['file', 'folder'], 
-    
-    // customContainerRenderer: MyFolderRenderer // (See above pattern)
-});
-```
-
-### 4. Templates (Pre-filled Trees)
-You can register a "Template" that, when dropped, creates a whole tree of components.
-
-```typescript
-registerPlugin({
-    type: 'template-morning-mix',
-    label: 'Morning Mix Template',
-    isContainer: true,
-    allowedChildren: ['audio'],
-    
-    // DATA FACTORY
-    createChildren: () => [
-        { type: 'audio', props: { title: 'Track 1', duration: '3:00' } },
-        { type: 'audio', props: { title: 'Track 2', duration: '4:15' } }
+    // Optional: Contribute specific style properties metadata to the global pool
+    styleProperties: [
+      { 
+        key: 'primaryColor', 
+        label: 'Accent Color', 
+        type: 'color', 
+        group: 'Colors',
+        systemFallback: '#22c55e'
+      }
     ],
-    
-    // Render as a normal playlist
-    render: ({ props }) => <PlaylistRenderer ... /> 
+
+    // How to generate static HTML for the final export
+    getHTML: async (component) => {
+      const { props } = component;
+      return `
+        <div class="audio-track" style="border-left: 4px solid #22c55e; padding: 10px;">
+          <strong>${props.title}</strong> - ${props.artist} (${props.duration})
+        </div>
+      `;
+    }
+  });
+}
+```
+
+## 6. Container & Hierarchy Patterns
+
+For components that hold other components (like Playlists or Cards), use the `ContainerDroppable` component.
+
+```tsx
+import { registerComponent, ContainerDroppable } from '@builder-plus/core';
+
+registerComponent('playlist-container', {
+  label: 'Playlist',
+  isContainer: true,
+  allowedChildren: ['audio-track'], // Restrict what can be dropped inside
+  
+  Renderer: ({ component, builderContext, styles }) => (
+    <div style={styles}>
+      <h3>{component.props.title}</h3>
+      {/* The drop zone for children */}
+      <ContainerDroppable
+        containerId={component.id}
+        containerType={component.type}
+        children={component.children || []}
+        builderContext={builderContext}
+        emptyContent={<div>Drop audio tracks here</div>}
+      />
+    </div>
+  )
 });
 ```
+
+## 7. Summary of Best Practices
+1.  **Registry First**: Ensure every stylistic property is registered to enable global theming support.
+2.  **Thematic Resolution**: Always spread the `styles` prop into your root container to respect the active user theme.
+3.  **Encapsulation**: Keep your renderers focused on the data provided by `props` and `styles`.

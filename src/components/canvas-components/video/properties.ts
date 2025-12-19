@@ -1,4 +1,5 @@
 import { createComponentProperties, type PropertyField, type PropertyGroup } from '../properties';
+import type { StylePropertyDefinition } from '../../../config/style-properties';
 
 const contentFields: PropertyField[] = [
   { key: 'src', label: 'Video URL', type: 'url', placeholder: 'https://...', group: 'content' },
@@ -12,6 +13,10 @@ const playbackFields: PropertyField[] = [
   { key: 'loop', label: 'Loop', type: 'boolean', defaultValue: false, group: 'playback' },
   { key: 'muted', label: 'Muted', type: 'boolean', defaultValue: false, group: 'playback' },
   { key: 'controls', label: 'Show Controls', type: 'boolean', defaultValue: true, group: 'playback' },
+];
+
+export const styleProperties: StylePropertyDefinition[] = [
+  { key: 'mediaPlaceholderPadding', label: 'Media Placeholder Padding', type: 'text', group: 'Layout', systemFallback: '40px' },
 ];
 
 export const properties = createComponentProperties(

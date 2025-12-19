@@ -80,6 +80,7 @@ export function registerBuiltInComponents(): void {
         description: 'Clickable button',
         render: createRenderFunction(button.Renderer),
         defaultProps: button.defaultProps,
+        styleProperties: button.styleProperties,
     });
 
     registerComponent({
@@ -90,6 +91,7 @@ export function registerBuiltInComponents(): void {
         description: 'Horizontal divider line',
         render: createRenderFunction(divider.Renderer),
         defaultProps: divider.defaultProps,
+        styleProperties: divider.styleProperties,
     });
 
     registerComponent({
@@ -100,6 +102,7 @@ export function registerBuiltInComponents(): void {
         description: 'Empty space',
         render: createRenderFunction(spacer.Renderer),
         defaultProps: spacer.defaultProps,
+        styleProperties: spacer.styleProperties,
     });
 
     // Typography components
@@ -111,6 +114,7 @@ export function registerBuiltInComponents(): void {
         description: 'Section heading',
         render: createRenderFunction(heading.Renderer),
         defaultProps: heading.defaultProps,
+        styleProperties: heading.styleProperties,
     });
 
     registerComponent({
@@ -121,6 +125,7 @@ export function registerBuiltInComponents(): void {
         description: 'Body text',
         render: createRenderFunction(paragraph.Renderer),
         defaultProps: paragraph.defaultProps,
+        styleProperties: paragraph.styleProperties,
     });
 
     registerComponent({
@@ -141,6 +146,7 @@ export function registerBuiltInComponents(): void {
         description: 'Bulleted or numbered list',
         render: createRenderFunction(list.Renderer),
         defaultProps: list.defaultProps,
+        styleProperties: list.styleProperties,
         createChildren: () => [
             { type: 'text', props: { text: 'Item 1' } },
             { type: 'text', props: { text: 'Item 2' } },
@@ -156,6 +162,7 @@ export function registerBuiltInComponents(): void {
         description: 'Block quote',
         render: createRenderFunction(quote.Renderer),
         defaultProps: quote.defaultProps,
+        styleProperties: quote.styleProperties,
     });
 
     // Media components
@@ -164,9 +171,10 @@ export function registerBuiltInComponents(): void {
         label: 'Image',
         category: 'media',
         icon: 'Image',
-        description: 'Image element',
+        description: 'Image with URL',
         render: createRenderFunction(image.Renderer),
         defaultProps: image.defaultProps,
+        styleProperties: image.styleProperties,
     });
 
     registerComponent({
@@ -177,6 +185,7 @@ export function registerBuiltInComponents(): void {
         description: 'Video player',
         render: createRenderFunction(video.Renderer),
         defaultProps: video.defaultProps,
+        styleProperties: video.styleProperties,
     });
 
     registerComponent({
@@ -200,6 +209,7 @@ export function registerBuiltInComponents(): void {
         isContainer: true,
         render: createRenderFunction(container.Renderer),
         defaultProps: container.defaultProps,
+        styleProperties: container.styleProperties,
     });
 
     registerComponent({
@@ -211,6 +221,7 @@ export function registerBuiltInComponents(): void {
         isContainer: true,
         render: createRenderFunction(columns.Renderer),
         defaultProps: columns.defaultProps,
+        styleProperties: columns.styleProperties,
     });
 
     registerComponent({
@@ -222,6 +233,7 @@ export function registerBuiltInComponents(): void {
         isContainer: true,
         render: createRenderFunction(card.Renderer),
         defaultProps: card.defaultProps,
+        styleProperties: card.styleProperties,
     });
 
     registerComponent({
@@ -233,6 +245,7 @@ export function registerBuiltInComponents(): void {
         isContainer: true,
         render: createRenderFunction(section.Renderer),
         defaultProps: section.defaultProps,
+        styleProperties: section.styleProperties,
     });
 
     // Form components
@@ -295,6 +308,7 @@ export function registerBuiltInComponents(): void {
         isContainer: true,
         render: createRenderFunction(form.Renderer),
         defaultProps: form.defaultProps,
+        styleProperties: form.styleProperties,
     });
 
     // Navigation components
@@ -306,6 +320,7 @@ export function registerBuiltInComponents(): void {
         description: 'Hyperlink',
         render: createRenderFunction(link.Renderer),
         defaultProps: link.defaultProps,
+        styleProperties: link.styleProperties,
     });
 
     registerComponent({

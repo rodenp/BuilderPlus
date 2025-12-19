@@ -94,51 +94,56 @@ export interface GlobalStyles {
   [key: string]: string | number | null | undefined;
 }
 
-// Default colors based on canvas dark/light mode
-export const getDefaultCanvasColors = (isCanvasDark: boolean) => ({
-  backgroundColor: isCanvasDark ? '#1e1e1e' : '#ffffff',
-  textColor: isCanvasDark ? '#e5e5e5' : '#171717',
-  linkColor: isCanvasDark ? '#60a5fa' : '#2563eb',
-});
+export type PropertyFieldType = 'text' | 'color' | 'select' | 'number' | 'boolean' | 'spacing';
+
+import type { Theme } from './theme';
 
 export interface BodySettings {
   pageTitle: string;
   metaDescription: string;
   faviconUrl: string;
-  theme: {
-    light: GlobalStyles;
-    dark: GlobalStyles;
-  };
-  defaultMode: 'light' | 'dark' | 'system';
+  activeCanvasThemeId: string;
+  activeUIThemeId: string;
+  customThemes: Theme[];
+  // Page/Global level overrides that sit on top of the active theme
+  styleOverrides?: GlobalStyles;
 }
 
 export const defaultBodySettings: BodySettings = {
   pageTitle: '',
   metaDescription: '',
   faviconUrl: '',
-  defaultMode: 'system',
-  theme: {
-    light: {
-      backgroundColor: '#ffffff',
-      textColor: '#171717',
-      linkColor: '#2563eb',
-      primaryColor: '#2563eb',
-      fontFamily: 'Inter',
-      fontSize: '16px',
-      lineHeight: '1.5',
-      maxWidth: '1200px',
-      padding: '20px',
-    },
-    dark: {
-      backgroundColor: '#1e1e1e',
-      textColor: '#e5e5e5',
-      linkColor: '#60a5fa',
-      primaryColor: '#3b82f6',
-      fontFamily: 'Inter',
-      fontSize: '16px',
-      lineHeight: '1.5',
-      maxWidth: '1200px',
-      padding: '20px',
-    }
-  }
+  activeCanvasThemeId: 'light',
+  activeUIThemeId: 'dark',
+  customThemes: [],
+  styleOverrides: {}
 };
+
+/**
+ * Migrates legacy body settings to the new theme architecture
+ */
+export function migrateBodySettings(settings: any): BodySettings {
+  // If it's already in the new format, return it
+  if (settings && settings.activeCanvasThemeId) {
+    if (!settings.styleOverrides) {
+      return { ...settings, styleOverrides: {} };
+    }
+    return settings as BodySettings;
+  }
+
+  const migrated: BodySettings = {
+    pageTitle: settings?.pageTitle || '',
+    metaDescription: settings?.metaDescription || '',
+    faviconUrl: settings?.faviconUrl || '',
+    activeCanvasThemeId: settings?.defaultMode === 'dark' ? 'dark' : 'light',
+    activeUIThemeId: 'dark', // Default UI to dark
+    customThemes: [],
+    styleOverrides: {}
+  };
+
+  // If legacy themes exist, we could optionally convert them to custom themes 
+  // if they differ from system defaults, but for simplicity we'll just 
+  // point to the system 'light'/'dark' IDs which we've redefined in ThemeRegistry.
+
+  return migrated;
+}

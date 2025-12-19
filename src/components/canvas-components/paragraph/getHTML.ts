@@ -6,8 +6,8 @@ export const getHTML = (component: CanvasComponent): string => {
   const styles = extractCommonStyles(props);
 
   const styleString = [
-    'font-size: 14px',
-    'line-height: 1.6',
+    `font-size: ${styles.paragraphFontSize || styles.fontSize || '14px'}`,
+    `line-height: ${styles.paragraphLineHeight || styles.lineHeight || 1.6}`,
     styles.color ? `color: ${styles.color}` : '',
     'margin: 0',
     styles.marginTop ? `margin-top: ${styles.marginTop}` : '',
@@ -23,6 +23,6 @@ export const getHTML = (component: CanvasComponent): string => {
   ].filter(Boolean).join('; ');
 
   const text = (props.text as string) || 'This is a paragraph of text.';
-  
+
   return `<p style="${styleString}">${text}</p>`;
 };

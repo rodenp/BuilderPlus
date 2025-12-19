@@ -32,6 +32,8 @@ import { PanelHeader } from './PanelHeader';
 import { PanelFooter } from './PanelFooter';
 import { createInputStyle, createLabelStyle, createButtonGroupStyle, createSmallInputStyle } from './styles';
 import { globalStyleRegistry } from '../../../config/style-properties';
+import { globalThemeRegistry } from '../../../core/theme-registry';
+import { resolveProperty, parseSpacing } from '../../../utils/property-resolver';
 
 interface PropertyPanelProps {
   theme: Theme;
@@ -55,24 +57,25 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
   bodySettings, // Destructure
 }) => {
   // Get default colors for the canvas
-  // Determine active theme mode
-  const activeMode = isCanvasDark ? 'dark' : 'light';
 
-  // 1. Get user overrides from bodySettings
-  const userThemeValues = bodySettings?.theme?.[activeMode] || {};
+  // 1. Resolve active canvas theme
+  const activeCanvasThemeId = bodySettings?.activeCanvasThemeId || 'light';
+  const systemTheme = globalThemeRegistry.getTheme(activeCanvasThemeId);
+  const customTheme = bodySettings?.customThemes?.find(t => t.id === activeCanvasThemeId);
+  const activeThemeObject = systemTheme || customTheme || globalThemeRegistry.getTheme('light');
 
-  // 2. Get defaults from registry for this mode
+  // 2. Get defaults from registry
   const registryDefaults = globalStyleRegistry.getGroups().reduce((acc, group) => {
     group.properties.forEach(prop => {
-      if (prop.defaultValue?.[activeMode] !== undefined) {
-        acc[prop.key as string] = prop.defaultValue[activeMode];
+      if (prop.systemFallback !== undefined) {
+        acc[prop.key as string] = prop.systemFallback;
       }
     });
     return acc;
   }, {} as Record<string, any>);
 
-  // 3. Merge: User overrides > Registry defaults
-  const themeDefaults = { ...registryDefaults, ...userThemeValues };
+  // 3. Merge: Active Theme Styles > Registry defaults
+  const themeDefaults = { ...registryDefaults, ...activeThemeObject?.styles };
 
   // Compute component-aware theme defaults (e.g. Buttons use Primary color as BG fallback)
   const isAccent = component?.type === 'button';
@@ -172,6 +175,46 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
     }
   };
 
+  // Component Definition & Defaults
+  const componentDef = component ? getComponentProperties(component.type) : undefined;
+  const defaultProps = component ? getDefaultProps(component.type) : undefined;
+
+  // Helper: Resolve a property value using the full hierarchy
+  const resolveProp = (key: string) => {
+    if (!component) return undefined;
+
+    // 1. Find field definition to get themeKey
+    const field = componentDef?.fields.find(f => f.key === key);
+    const themeKey = field?.themeKey;
+
+    // 2. Find system fallback from registry (if themeKey exists)
+    let systemFallback = undefined;
+    if (themeKey) {
+      for (const group of globalStyleRegistry.getGroups()) {
+        const prop = group.properties.find(p => p.key === themeKey);
+        if (prop) {
+          systemFallback = prop.systemFallback;
+          break;
+        }
+      }
+    }
+
+    // 3. Resolve
+    // Fix: activeThemeObject might be undefined? Ensure we handle it.
+    // Line 64: `const activeThemeObject = ...`. It is derived from registry, theoretically always exists if 'light' exists.
+    // But typescript warns.
+    return resolveProperty(
+      component.props,
+      key,
+      defaultProps?.[key],
+      (themeKey && activeThemeObject) ? activeThemeObject.styles[themeKey] : undefined,
+      systemFallback
+    );
+  };
+
+  // Helper: Resolve spacing to object { top, right, bottom, left }
+  const resolveSpacing = (key: string) => parseSpacing(resolveProp(key));
+
   // Render component-specific properties
   const renderComponentProperties = () => {
     if (!component) return null;
@@ -195,7 +238,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                 <label style={labelStyle}>Button Text</label>
                 <input
                   type="text"
-                  value={(component.props.text as string) || ''}
+                  value={(resolveProp('text') as string) || ''}
                   onChange={(e) => updateProp('text', e.target.value)}
                   placeholder="Enter button text..."
                   style={inputStyle}
@@ -215,7 +258,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <label style={labelStyle}>Action Type</label>
                 <select
-                  value={(component.props.actionType as string) || 'link'}
+                  value={(resolveProp('actionType') as string) || 'link'}
                   onChange={(e) => updateProp('actionType', e.target.value)}
                   style={{
                     ...inputStyle,
@@ -257,7 +300,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     </div>
                     <input
                       type="text"
-                      value={(component.props.url as string) || ''}
+                      value={(resolveProp('url') as string) || ''}
                       onChange={(e) => updateProp('url', e.target.value)}
                       placeholder="https://"
                       style={{
@@ -289,7 +332,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                       Target
                     </div>
                     <select
-                      value={(component.props.target as string) || '_self'}
+                      value={(resolveProp('target') as string) || '_self'}
                       onChange={(e) => updateProp('target', e.target.value)}
                       style={{
                         flex: 1,
@@ -326,7 +369,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
               <label style={labelStyle}>Heading Text</label>
               <input
                 type="text"
-                value={(component.props.text as string) || ''}
+                value={(resolveProp('text') as string) || ''}
                 onChange={(e) => updateProp('text', e.target.value)}
                 placeholder="Enter heading..."
                 style={inputStyle}
@@ -335,7 +378,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
             <div>
               <label style={labelStyle}>Heading Level</label>
               <select
-                value={(component.props.level as string) || 'h2'}
+                value={(resolveProp('level') as string) || 'h2'}
                 onChange={(e) => updateProp('level', e.target.value)}
                 style={inputStyle}
               >
@@ -1139,7 +1182,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                         {prop.type === 'text' && (
                           <input
                             type="text"
-                            value={(component.props[prop.key] as string) || ''}
+                            value={(resolveProp(prop.key) as string) || ''}
                             onChange={(e) => updateProp(prop.key, e.target.value)}
                             placeholder={prop.placeholder || `${prop.label}...`}
                             style={inputStyle}
@@ -1285,7 +1328,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
 
                         {prop.type === 'select' && (
                           <select
-                            value={(component.props[prop.key] as string) || prop.options?.[0]?.value}
+                            value={(resolveProp(prop.key) as string) || prop.options?.[0]?.value}
                             onChange={(e) => updateProp(prop.key, e.target.value)}
                             style={inputStyle}
                           >
@@ -1419,7 +1462,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
               />
               <ColorPicker
                 label="Text Color"
-                color={component.props.textColor as string | null | undefined}
+                color={(component.props as any).textColor as string | null | undefined}
                 onChange={(color) => updateProp('textColor', color)}
                 isOpen={showTextPicker}
                 onToggle={() => {
@@ -1445,15 +1488,18 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
             >
               <BoxModelControl
                 margin={
-                  (component.props.margin as { top: string; right: string; bottom: string; left: string }) ||
+                  (component.props.margin as any) ||
+                  resolveSpacing('margin') ||
                   { top: '0', right: '0', bottom: '0', left: '0' }
                 }
                 padding={
-                  (component.props.padding as { top: string; right: string; bottom: string; left: string }) ||
+                  (component.props.padding as any) ||
+                  resolveSpacing('padding') ||
                   { top: '0', right: '0', bottom: '0', left: '0' }
                 }
                 onMarginChange={(side, value) => {
-                  const currentMargin = (component.props.margin as { top: string; right: string; bottom: string; left: string }) ||
+                  const currentMargin = (component.props.margin as any) ||
+                    resolveSpacing('margin') ||
                     { top: '0', right: '0', bottom: '0', left: '0' };
                   if (marginLinked) {
                     updateProp('margin', { top: value, right: value, bottom: value, left: value });
@@ -1462,7 +1508,8 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                   }
                 }}
                 onPaddingChange={(side, value) => {
-                  const currentPadding = (component.props.padding as { top: string; right: string; bottom: string; left: string }) ||
+                  const currentPadding = (component.props.padding as any) ||
+                    resolveSpacing('padding') ||
                     { top: '0', right: '0', bottom: '0', left: '0' };
                   if (paddingLinked) {
                     updateProp('padding', { top: value, right: value, bottom: value, left: value });
@@ -1770,8 +1817,8 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
               theme={theme}
               clearable
               defaultColor="#0ea5e9"
-              themeDefault={defaultCanvasColors.backgroundColor}
-              inheritedValue={defaultCanvasColors.backgroundColor}
+              themeDefault={themeDefaults.backgroundColor}
+              inheritedValue={themeDefaults.backgroundColor}
             />
             <ColorPicker
               label="Text Color"
@@ -1785,8 +1832,8 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
               theme={theme}
               clearable
               defaultColor="#ffffff"
-              themeDefault={defaultCanvasColors.textColor}
-              inheritedValue={defaultCanvasColors.textColor}
+              themeDefault={themeDefaults.textColor}
+              inheritedValue={themeDefaults.textColor}
             />
             <ColorPicker
               label="Primary Color"
@@ -1801,8 +1848,8 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
               theme={theme}
               clearable
               defaultColor="#2563eb"
-              themeDefault={defaultCanvasColors.primaryColor}
-              inheritedValue={defaultCanvasColors.primaryColor}
+              themeDefault={themeDefaults.primaryColor}
+              inheritedValue={themeDefaults.primaryColor}
             />
           </Section>
 

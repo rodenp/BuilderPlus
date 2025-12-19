@@ -31,5 +31,6 @@ export type {
 // 4. Utilities
 // Helpers for styling and HTML generation.
 export { extractCommonStyles } from './components/canvas-components/types';
-export { getComponentHTML } from './components/canvas-components/register';
-export { globalStyleRegistry } from './config/style-properties';
+export { getComponentHTML, registerComponent } from './components/canvas-components/register';
+export { globalStyleRegistry, registerStyleFields } from './config/style-properties';
+export { globalThemeRegistry, registerTheme } from './core/theme-registry';

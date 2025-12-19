@@ -1,4 +1,5 @@
 import { createComponentProperties, type PropertyField } from '../properties';
+import type { StylePropertyDefinition } from '../../../config/style-properties';
 
 const contentFields: PropertyField[] = [
   { key: 'thickness', label: 'Thickness', type: 'number', defaultValue: 1, group: 'content' },
@@ -9,6 +10,10 @@ const contentFields: PropertyField[] = [
       { label: 'Dotted', value: 'dotted' },
     ]
   },
+];
+
+export const styleProperties: StylePropertyDefinition[] = [
+  { key: 'dividerColor', label: 'Divider Color', type: 'color', group: 'Colors', systemFallback: 'rgba(0,0,0,0.1)' },
 ];
 
 export const properties = createComponentProperties(contentFields);

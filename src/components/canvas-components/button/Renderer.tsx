@@ -20,8 +20,8 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
           : 'none',
         borderRadius: commonStyles.borderRadius,
         cursor: 'pointer',
-        fontSize: '14px',
-        fontWeight: 500,
+        fontSize: commonStyles.buttonFontSize || '14px',
+        fontWeight: commonStyles.buttonFontWeight || 500,
       }}
       onClick={(e) => {
         // In preview mode or live site, this would navigate.

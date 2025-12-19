@@ -1,14 +1,23 @@
 import { createComponentProperties, type PropertyField } from '../properties';
+import type { StylePropertyDefinition } from '../../../config/style-properties';
 
 const contentFields: PropertyField[] = [
   { key: 'action', label: 'Form Action', type: 'url', placeholder: '/submit', group: 'content' },
-  { key: 'method', label: 'Method', type: 'select', defaultValue: 'POST', group: 'content', options: [
-    { label: 'POST', value: 'POST' },
-    { label: 'GET', value: 'GET' },
-  ]},
+  {
+    key: 'method', label: 'Method', type: 'select', defaultValue: 'POST', group: 'content', options: [
+      { label: 'POST', value: 'POST' },
+      { label: 'GET', value: 'GET' },
+    ]
+  },
 ];
 
-export const properties = createComponentProperties(contentFields, [], [], true);
+export const styleProperties: StylePropertyDefinition[] = [
+  { key: 'formPadding', label: 'Form Default Padding', type: 'text', group: 'Layout', systemFallback: '20px' },
+];
+
+export const properties = createComponentProperties(contentFields, [], [], true, {
+  padding: { themeKey: 'formPadding' }
+});
 
 export const defaultProps = {
   action: '',

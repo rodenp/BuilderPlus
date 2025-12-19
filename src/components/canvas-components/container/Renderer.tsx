@@ -22,8 +22,7 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
         border: hasBorder
           ? `${commonStyles.borderWidth} ${commonStyles.borderStyle || 'solid'} ${commonStyles.borderColor || '#000'}`
           : `1px dashed ${canvasTheme.text}30`,
-        borderRadius: commonStyles.borderRadius || '4px',
-        // minHeight: 'auto', // REMOVED per user request
+        borderRadius: commonStyles.borderRadius || commonStyles.containerBorderRadius || '4px',
         width: commonStyles.width,
         height: commonStyles.height,
         overflow: (props.overflow as any) || 'visible', // Default to visible for containers

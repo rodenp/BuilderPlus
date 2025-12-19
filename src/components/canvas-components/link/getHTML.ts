@@ -4,10 +4,10 @@ import { extractCommonStyles } from '../types';
 export const getHTML = (component: CanvasComponent): string => {
   const { props } = component;
   const styles = extractCommonStyles(props);
-  
+
   const styleString = [
     `color: ${styles.color || '#0066cc'}`,
-    'text-decoration: underline',
+    `text-decoration: ${styles.linkTextDecoration || 'underline'}`,
     'cursor: pointer',
     styles.marginTop ? `margin-top: ${styles.marginTop}` : '',
     styles.marginRight ? `margin-right: ${styles.marginRight}` : '',

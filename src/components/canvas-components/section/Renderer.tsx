@@ -9,7 +9,7 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
     <section
       style={{
         ...commonStyles,
-        padding: commonStyles.paddingTop ? undefined : '40px 24px',
+        padding: commonStyles.paddingTop ? undefined : (commonStyles.sectionPadding || '40px 24px'),
         paddingTop: commonStyles.paddingTop,
         paddingRight: commonStyles.paddingRight,
         paddingBottom: commonStyles.paddingBottom,

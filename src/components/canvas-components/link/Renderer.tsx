@@ -3,6 +3,7 @@ import type { CanvasComponentProps } from '../types';
 
 export const Renderer: React.FC<CanvasComponentProps> = ({
   component,
+  canvasTheme,
   commonStyles,
 }) => {
   const { props } = component;
@@ -13,7 +14,8 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
       target={(props.target as string) || '_self'}
       style={{
         ...commonStyles,
-        textDecoration: 'underline',
+        color: commonStyles.color || canvasTheme.link,
+        textDecoration: commonStyles.linkTextDecoration || 'underline',
         cursor: 'pointer',
       }}
       onClick={(e) => e.preventDefault()}

@@ -14,6 +14,7 @@ interface ColorPickerProps {
   themeDefault?: string; // Pure theme-inherited color (e.g. Black/White)
   inheritedValue?: string; // Value from parent/theme when everything is cleared
   clearable?: boolean;
+  disabled?: boolean;
 }
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({
@@ -27,6 +28,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   themeDefault,
   inheritedValue, // Destructured inheritedValue
   clearable = false,
+  disabled = false,
 }) => {
   const labelStyle: React.CSSProperties = {
     fontSize: '12px',
@@ -34,6 +36,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     color: theme.textMuted,
     marginBottom: '6px',
     display: 'block',
+    opacity: disabled ? 0.6 : 1
   };
 
   // Priority: User selection > Component Default > Theme Default > Fallback
@@ -53,6 +56,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (disabled) return;
 
     if (color !== null && color !== undefined) {
       // Step 1: Clear manual to Default (undefined) or straight to Inherited (null) if no defaultColor
@@ -88,7 +92,8 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
       <label style={labelStyle}>{label}</label>
       <div style={{ position: 'relative' }}>
         <button
-          onClick={onToggle}
+          onClick={() => !disabled && onToggle()}
+          disabled={disabled}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -99,7 +104,8 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
             backgroundColor: theme.bgSecondary,
             border: `1px solid ${theme.border}`,
             borderRadius: '6px',
-            cursor: 'pointer',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            opacity: disabled ? 0.6 : 1
           }}
         >
           <div style={{ position: 'relative' }}>
@@ -112,7 +118,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                 backgroundColor: displayColor,
               }}
             />
-            {clearable && hasValueToClear && (
+            {clearable && hasValueToClear && !disabled && (
               <div
                 onClick={handleClear}
                 style={{
@@ -145,7 +151,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
             {displayColor}
           </span>
         </button>
-        {isOpen && (
+        {isOpen && !disabled && (
           <div
             style={{
               position: 'absolute',

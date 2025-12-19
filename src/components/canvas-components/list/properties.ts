@@ -1,14 +1,21 @@
 import { createComponentProperties, type PropertyField } from '../properties';
+import type { StylePropertyDefinition } from '../../../config/style-properties';
 
 const contentFields: PropertyField[] = [
   { key: 'items', label: 'Items (one per line)', type: 'textarea', defaultValue: 'Item 1\nItem 2\nItem 3', group: 'content' },
-  { key: 'listStyle', label: 'List Style', type: 'select', defaultValue: 'disc', group: 'content', options: [
-    { label: 'Bullet', value: 'disc' },
-    { label: 'Circle', value: 'circle' },
-    { label: 'Square', value: 'square' },
-    { label: 'Numbered', value: 'decimal' },
-    { label: 'None', value: 'none' },
-  ]},
+  {
+    key: 'listStyle', label: 'List Style', type: 'select', defaultValue: 'disc', group: 'content', options: [
+      { label: 'Bullet', value: 'disc' },
+      { label: 'Circle', value: 'circle' },
+      { label: 'Square', value: 'square' },
+      { label: 'Numbered', value: 'decimal' },
+      { label: 'None', value: 'none' },
+    ]
+  },
+];
+
+export const styleProperties: StylePropertyDefinition[] = [
+  { key: 'listItemSpacing', label: 'Item Spacing', type: 'text', group: 'Layout', systemFallback: '4px' },
 ];
 
 export const properties = createComponentProperties(contentFields);

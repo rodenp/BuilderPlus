@@ -1,8 +1,7 @@
 import React from 'react';
-import { Type, LayoutGrid, Palette, Settings, Image } from 'lucide-react';
+import { Type, LayoutGrid, Palette, Image, Globe } from 'lucide-react';
 import type { Theme } from '../panels/property-panel/theme';
-
-type MenuTab = 'content' | 'blocks' | 'body' | 'brand' | 'media';
+import type { MenuTab } from '../../types/ui-types';
 
 interface SideMenuProps {
   activeTab: MenuTab;
@@ -15,8 +14,8 @@ export const SideMenu: React.FC<SideMenuProps> = ({ activeTab, onTabChange, them
     { id: 'content', icon: <Type style={{ width: 20, height: 20 }} />, label: 'Content' },
     { id: 'blocks', icon: <LayoutGrid style={{ width: 20, height: 20 }} />, label: 'Blocks' },
     { id: 'media', icon: <Image style={{ width: 20, height: 20 }} />, label: 'Media' },
-    { id: 'body', icon: <Palette style={{ width: 20, height: 20 }} />, label: 'Body' },
-    { id: 'theme', icon: <Settings style={{ width: 20, height: 20 }} />, label: 'Theme' },
+    { id: 'body', icon: <Globe style={{ width: 20, height: 20 }} />, label: 'Body' },
+    { id: 'theme', icon: <Palette style={{ width: 20, height: 20 }} />, label: 'Theme' },
   ];
 
   return (

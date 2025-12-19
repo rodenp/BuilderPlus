@@ -1,4 +1,5 @@
 import { createComponentProperties, type PropertyField } from '../properties';
+import type { StylePropertyDefinition } from '../../../config/style-properties';
 
 const contentFields: PropertyField[] = [
   { key: 'text', label: 'Text', type: 'textarea', defaultValue: 'Text', group: 'content' },
@@ -16,6 +17,11 @@ const contentFields: PropertyField[] = [
       { label: 'Scroll (Always)', value: 'scroll' },
     ]
   },
+];
+
+export const styleProperties: StylePropertyDefinition[] = [
+  { key: 'paragraphFontSize', label: 'Paragraph Font Size', type: 'text', group: 'Typography', systemFallback: '14px' },
+  { key: 'paragraphLineHeight', label: 'Paragraph Line Height', type: 'text', group: 'Typography', systemFallback: '1.6' },
 ];
 
 export const properties = createComponentProperties(contentFields);
