@@ -14,7 +14,7 @@ interface ContainerDroppableProps {
     children: CanvasComponent[];
     builderContext: any;
     theme: UITheme;
-    activeThemeObject: Theme;
+    activeThemeObject?: Theme;
     canvasTheme: CanvasTheme;
     style?: React.CSSProperties;
     className?: string;

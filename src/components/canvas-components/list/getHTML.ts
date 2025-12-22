@@ -1,9 +1,14 @@
 import type { CanvasComponent } from '../../../types/component-types';
 import { extractCommonStyles } from '../types';
 
-export const getHTML = (component: CanvasComponent): string => {
-  const { props } = component;
+export const getHTML = async (
+  component: CanvasComponent,
+  theme: import('../../../types/theme').Theme,
+  renderChildren: (children: CanvasComponent[]) => Promise<string[]>
+): Promise<string> => {
+  const { props, children } = component;
   const styles = extractCommonStyles(props);
+  const themeStyles = theme.styles;
   const listType = (props.listType as string) || 'unordered';
   const tag = listType === 'ordered' ? 'ol' : 'ul';
 
@@ -18,7 +23,7 @@ export const getHTML = (component: CanvasComponent): string => {
     styles.paddingBottom ? `padding-bottom: ${styles.paddingBottom}` : '',
     `padding-left: ${styles.paddingLeft || '24px'}`,
     styles.backgroundColor ? `background-color: ${styles.backgroundColor}` : '',
-    `color: ${styles.color || '#000'}`,
+    `color: ${styles.color || themeStyles.textColor || '#000'}`,
     styles.width ? `width: ${styles.width}` : '',
     `list-style-type: ${listType === 'ordered' ? 'decimal' : 'disc'}`,
     styles.display ? `display: ${styles.display}` : '',
@@ -29,13 +34,20 @@ export const getHTML = (component: CanvasComponent): string => {
     styles.gap ? `gap: ${styles.gap}` : '',
   ].filter(Boolean).join('; ');
 
-  // Default items if no children
   const spacing = styles.listItemSpacing || '4px';
-  const itemsHTML = `
-    <li style="margin-bottom: ${spacing}">Item 1</li>
-    <li style="margin-bottom: ${spacing}">Item 2</li>
-    <li style="margin-bottom: ${spacing}">Item 3</li>
-  `;
+
+  let itemsHTML = '';
+  if (children && children.length > 0) {
+    const childStrings = await renderChildren(children);
+    itemsHTML = childStrings.map(html => `<li style="margin-bottom: ${spacing}">${html}</li>`).join('');
+  } else {
+    // Default items
+    itemsHTML = `
+      <li style="margin-bottom: ${spacing}">Item 1</li>
+      <li style="margin-bottom: ${spacing}">Item 2</li>
+      <li style="margin-bottom: ${spacing}">Item 3</li>
+    `;
+  }
 
   return `<${tag} style="${styleString}">${itemsHTML}</${tag}>`;
 };

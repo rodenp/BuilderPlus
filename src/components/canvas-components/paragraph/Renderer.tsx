@@ -7,12 +7,16 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
 }) => {
   const { props } = component;
 
+  // Resolve color: paragraph color > generic color
+  const color = commonStyles.paragraphColor || commonStyles.color;
+
   return (
     <div
       style={{
         ...commonStyles,
         fontSize: commonStyles.paragraphFontSize || commonStyles.fontSize || '14px',
         lineHeight: commonStyles.paragraphLineHeight || commonStyles.lineHeight || 1.6,
+        color: color,
         margin: 0,
         height: commonStyles.height, // Must be set for overflow to work
         maxHeight: (props.maxHeight as string) || undefined,

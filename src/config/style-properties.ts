@@ -156,8 +156,22 @@ registerStyleFields([
     { key: 'cardPadding', label: 'Card Padding', type: 'spacing', group: 'Cards', systemFallback: '24px' },
     { key: 'cardShadow', label: 'Card Shadow', type: 'text', group: 'Cards', systemFallback: '0 4px 6px -1px rgba(0,0,0,0.1)' },
 
-    // Forms & Media
+    // Forms
+    { key: 'inputBg', label: 'Input Background', type: 'color', group: 'Forms', systemFallback: 'transparent' },
+    { key: 'inputTextColor', label: 'Input Text', type: 'color', group: 'Forms', systemFallback: '#171717' },
+    { key: 'inputBorderColor', label: 'Input Border', type: 'color', group: 'Forms', systemFallback: '#e5e5e5' },
+    { key: 'inputBorderWidth', label: 'Input Border Width', type: 'text', group: 'Forms', systemFallback: '1px' },
+    { key: 'inputBorderStyle', label: 'Input Border Style', type: 'select', group: 'Forms', systemFallback: 'solid', options: [{ label: 'Solid', value: 'solid' }] },
+    { key: 'inputBorderRadius', label: 'Input Radius', type: 'text', group: 'Forms', systemFallback: '4px' },
+    { key: 'inputPadding', label: 'Input Padding', type: 'spacing', group: 'Forms', systemFallback: '8px 12px' },
+    { key: 'labelColor', label: 'Label Color', type: 'color', group: 'Forms', systemFallback: '#171717' },
+    { key: 'labelFontSize', label: 'Label Size', type: 'text', group: 'Forms', systemFallback: '14px' },
     { key: 'formPadding', label: 'Form Padding', type: 'spacing', group: 'Forms', systemFallback: '24px' },
+
+    // Navigation (Menu)
+    { key: 'menuBg', label: 'Menu Background', type: 'color', group: 'Navigation', systemFallback: 'transparent' },
+    { key: 'menuTextColor', label: 'Menu Text', type: 'color', group: 'Navigation', systemFallback: '#171717' },
+    { key: 'menuLinkColor', label: 'Menu Link', type: 'color', group: 'Navigation', systemFallback: '#2563eb' },
     { key: 'mediaPlaceholderPadding', label: 'Media Placeholder Pattern', type: 'spacing', group: 'Media', systemFallback: '40px' },
 ]);
 

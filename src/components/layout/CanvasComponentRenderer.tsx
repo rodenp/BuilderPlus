@@ -18,7 +18,7 @@ interface CanvasComponentRendererProps {
     parentId: string | null;
     builderContext: any;
     theme: UITheme;
-    activeThemeObject: Theme;
+    activeThemeObject?: Theme;
     canvasTheme: CanvasTheme;
     parentFlexDirection?: string;
 }
@@ -179,6 +179,7 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
                     canvasTheme={canvasTheme}
                     commonStyles={commonStyles}
                     uiTheme={theme}
+                    activeThemeObject={activeThemeObject}
                     isPreviewMode={false}
                     renderChild={renderChild}
                     builderContext={builderContext}

@@ -28,7 +28,7 @@ const ToolbarIconButton: React.FC<{
     size?: number;
     color?: string;
     theme: Theme;
-}> = ({ onClick, icon: Icon, title, size = 14, color = 'inherit', theme }) => {
+}> = ({ onClick, icon: Icon, title, size = 14, color = 'inherit' }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (

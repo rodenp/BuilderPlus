@@ -1,13 +1,18 @@
 import type { CanvasComponent } from '../../../types/component-types';
 import { extractCommonStyles } from '../types';
 
-export const getHTML = (component: CanvasComponent): string => {
-  const { props } = component;
+export const getHTML = async (
+  component: CanvasComponent,
+  theme: import('../../../types/theme').Theme,
+  renderChildren: (children: CanvasComponent[]) => Promise<string[]>
+): Promise<string> => {
+  const { props, children } = component;
   const styles = extractCommonStyles(props);
+  const themeStyles = theme.styles;
 
   const styleString = [
-    `padding: ${styles.paddingTop ? `${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}` : (styles.sectionPadding || '40px 24px')}`,
-    `background-color: ${styles.backgroundColor || 'transparent'}`,
+    `padding: ${styles.paddingTop ? `${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}` : (styles.sectionPadding || themeStyles.sectionPadding || '40px 24px')}`,
+    `background-color: ${styles.backgroundColor || themeStyles.sectionBg || 'transparent'}`,
     `min-height: 100px`,
     styles.width ? `width: ${styles.width}` : '',
     styles.marginTop ? `margin-top: ${styles.marginTop}` : '',
@@ -26,5 +31,6 @@ export const getHTML = (component: CanvasComponent): string => {
     styles.gap ? `gap: ${styles.gap}` : '',
   ].filter(Boolean).join('; ');
 
-  return `<section style="${styleString}">Section</section>`;
+  const childrenHTML = (await renderChildren(children || [])).join('');
+  return `<section style="${styleString}">${childrenHTML}</section>`;
 };

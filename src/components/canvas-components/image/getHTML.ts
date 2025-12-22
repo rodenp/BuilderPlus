@@ -1,23 +1,24 @@
 import type { CanvasComponent } from '../../../types/component-types';
 import { extractCommonStyles } from '../types';
 
-export const getHTML = (component: CanvasComponent): string => {
+export const getHTML = (component: CanvasComponent, theme: import('../../../types/theme').Theme): string => {
   const { props } = component;
   const styles = extractCommonStyles(props);
+  const themeStyles = theme.styles;
 
   const containerStyles = [
-    `background-color: ${styles.backgroundColor || 'rgba(0,0,0,0.05)'}`,
-    `border-radius: ${styles.borderRadius || '8px'}`,
+    `background-color: ${styles.backgroundColor || themeStyles.cardBg || 'rgba(0,0,0,0.05)'}`,
+    `border-radius: ${styles.borderRadius || themeStyles.borderRadius || '8px'}`,
     styles.paddingTop ? `padding: ${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}` : `padding: ${styles.mediaPlaceholderPadding || '40px'}`,
     'text-align: center',
-    `color: ${styles.color || '#000'}`,
+    `color: ${styles.color || themeStyles.textColor || '#000'}`,
     styles.width ? `width: ${styles.width}` : '',
     styles.height ? `height: ${styles.height}` : '',
     styles.marginTop ? `margin-top: ${styles.marginTop}` : '',
     styles.marginRight ? `margin-right: ${styles.marginRight}` : '',
     styles.marginBottom ? `margin-bottom: ${styles.marginBottom}` : '',
     styles.marginLeft ? `margin-left: ${styles.marginLeft}` : '',
-    styles.borderWidth ? `border: ${styles.borderWidth} ${styles.borderStyle || 'solid'} ${styles.borderColor || '#000'}` : '',
+    styles.borderWidth ? `border: ${styles.borderWidth} ${styles.borderStyle || 'solid'} ${styles.borderColor || themeStyles.borderColor || '#000'}` : '',
   ].filter(Boolean).join('; ');
 
   const content = (props.src as string)

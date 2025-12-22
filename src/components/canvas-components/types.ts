@@ -1,5 +1,6 @@
 import type { CanvasComponent } from '../../types/component-types';
-import type { Theme } from '../panels/property-panel/theme';
+import type { Theme as UITheme } from '../panels/property-panel/theme';
+import type { Theme } from '../../types/theme';
 
 // Canvas theme colors
 export interface CanvasTheme {
@@ -45,7 +46,8 @@ export interface CommonStyles {
 export interface CanvasComponentProps {
   component: CanvasComponent;
   canvasTheme: CanvasTheme;
-  uiTheme: Theme;
+  uiTheme: UITheme;
+  activeThemeObject?: Theme;
   commonStyles: CommonStyles;
   isPreviewMode?: boolean;
   // For container components that can have children

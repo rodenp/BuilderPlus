@@ -23,7 +23,7 @@ import { MediaGallery } from './components/panels/MediaGallery';
 import { ThemePanel } from './components/panels/ThemePanel';
 import { globalThemeRegistry } from './core/theme-registry';
 import type { MediaItem, MediaType } from './types/media';
-import { X } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import type { MenuTab, AppPage } from './types/ui-types';
 
@@ -56,6 +56,8 @@ function App() {
   const [panelPosition, setPanelPosition] = useState<PanelPosition>('right');
   // Settings panel open state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  // Panel collapsed state
+  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
   // Body settings state
   const [bodySettings, setBodySettings] = useState<BodySettings>(defaultBodySettings);
 
@@ -376,6 +378,7 @@ function App() {
         activeTab={activeTab}
         onTabChange={(tab) => {
           setActiveTab(tab as any);
+          setIsPanelCollapsed(false); // Auto-open panel
           // If switching tabs, maybe deselect component?
           // setSelectedComponentId(null); // Optional: mimics behaviour where tabs take precedence
         }}
@@ -383,7 +386,28 @@ function App() {
       />
     );
 
-    const activePanel = renderActivePanel();
+    const activePanel = !isPanelCollapsed ? renderActivePanel() : null;
+
+    // Toggle button style
+    const toggleButtonStyle = {
+      position: 'absolute' as const,
+      top: '50%',
+      [panelPosition === 'left' ? 'left' : 'right']: '0',
+      transform: 'translateY(-50%)',
+      zIndex: 40,
+      width: '24px',
+      height: '48px',
+      backgroundColor: theme.bg,
+      border: `1px solid ${theme.border}`,
+      [panelPosition === 'left' ? 'borderLeft' : 'borderRight']: 'none',
+      borderRadius: panelPosition === 'left' ? '0 8px 8px 0' : '8px 0 0 8px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      cursor: 'pointer',
+      color: theme.textMuted,
+      boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    };
 
     // Canvas takes remaining space
     const canvas = (
@@ -395,9 +419,24 @@ function App() {
           components={components}
           onComponentsChange={handleComponentsChange}
           selectedComponentId={selectedComponentId}
-          onSelectComponent={handleSelectComponent}
+          onSelectComponent={(id) => {
+            handleSelectComponent(id);
+            if (id) setIsPanelCollapsed(false); // Auto-open on selection
+          }}
           builderContext={builderContext}
         />
+
+        {/* Panel Toggle Button */}
+        <button
+          onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
+          style={toggleButtonStyle}
+          title={isPanelCollapsed ? "Expand Panel" : "Collapse Panel"}
+        >
+          {panelPosition === 'left'
+            ? (isPanelCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />)
+            : (isPanelCollapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />)
+          }
+        </button>
       </div>
     );
 

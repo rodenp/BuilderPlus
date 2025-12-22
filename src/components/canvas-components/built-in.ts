@@ -81,6 +81,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(button.Renderer),
         defaultProps: button.defaultProps,
         styleProperties: button.styleProperties,
+        getHTML: button.getHTML,
     });
 
     registerComponent({
@@ -92,6 +93,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(divider.Renderer),
         defaultProps: divider.defaultProps,
         styleProperties: divider.styleProperties,
+        getHTML: divider.getHTML,
     });
 
     registerComponent({
@@ -103,6 +105,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(spacer.Renderer),
         defaultProps: spacer.defaultProps,
         styleProperties: spacer.styleProperties,
+        getHTML: spacer.getHTML,
     });
 
     // Typography components
@@ -115,6 +118,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(heading.Renderer),
         defaultProps: heading.defaultProps,
         styleProperties: heading.styleProperties,
+        getHTML: heading.getHTML,
     });
 
     registerComponent({
@@ -126,6 +130,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(paragraph.Renderer),
         defaultProps: paragraph.defaultProps,
         styleProperties: paragraph.styleProperties,
+        getHTML: paragraph.getHTML,
     });
 
     registerComponent({
@@ -136,6 +141,7 @@ export function registerBuiltInComponents(): void {
         description: 'Inline text',
         render: createRenderFunction(text.Renderer),
         defaultProps: text.defaultProps,
+        getHTML: text.getHTML,
     });
 
     registerComponent({
@@ -152,6 +158,7 @@ export function registerBuiltInComponents(): void {
             { type: 'text', props: { text: 'Item 2' } },
             { type: 'text', props: { text: 'Item 3' } },
         ],
+        getHTML: list.getHTML,
     });
 
     registerComponent({
@@ -163,6 +170,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(quote.Renderer),
         defaultProps: quote.defaultProps,
         styleProperties: quote.styleProperties,
+        getHTML: quote.getHTML,
     });
 
     // Media components
@@ -175,6 +183,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(image.Renderer),
         defaultProps: image.defaultProps,
         styleProperties: image.styleProperties,
+        getHTML: image.getHTML,
     });
 
     registerComponent({
@@ -186,6 +195,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(video.Renderer),
         defaultProps: video.defaultProps,
         styleProperties: video.styleProperties,
+        getHTML: video.getHTML,
     });
 
     registerComponent({
@@ -197,6 +207,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(icon.Renderer),
         defaultProps: icon.defaultProps,
         properties: icon.contentFields,
+        getHTML: icon.getHTML,
     });
 
     // Layout components
@@ -210,6 +221,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(container.Renderer),
         defaultProps: container.defaultProps,
         styleProperties: container.styleProperties,
+        getHTML: container.getHTML,
     });
 
     registerComponent({
@@ -222,6 +234,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(columns.Renderer),
         defaultProps: columns.defaultProps,
         styleProperties: columns.styleProperties,
+        getHTML: columns.getHTML,
     });
 
     registerComponent({
@@ -234,6 +247,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(card.Renderer),
         defaultProps: card.defaultProps,
         styleProperties: card.styleProperties,
+        getHTML: card.getHTML,
     });
 
     registerComponent({
@@ -246,6 +260,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(section.Renderer),
         defaultProps: section.defaultProps,
         styleProperties: section.styleProperties,
+        getHTML: section.getHTML,
     });
 
     // Form components
@@ -257,6 +272,7 @@ export function registerBuiltInComponents(): void {
         description: 'Text input field',
         render: createRenderFunction(input.Renderer),
         defaultProps: input.defaultProps,
+        getHTML: input.getHTML,
     });
 
     registerComponent({
@@ -267,6 +283,7 @@ export function registerBuiltInComponents(): void {
         description: 'Multi-line text input',
         render: createRenderFunction(textarea.Renderer),
         defaultProps: textarea.defaultProps,
+        getHTML: textarea.getHTML,
     });
 
     registerComponent({
@@ -277,6 +294,7 @@ export function registerBuiltInComponents(): void {
         description: 'Checkbox input',
         render: createRenderFunction(checkbox.Renderer),
         defaultProps: checkbox.defaultProps,
+        getHTML: checkbox.getHTML,
     });
 
     registerComponent({
@@ -287,6 +305,7 @@ export function registerBuiltInComponents(): void {
         description: 'Radio button',
         render: createRenderFunction(radio.Renderer),
         defaultProps: radio.defaultProps,
+        getHTML: radio.getHTML,
     });
 
     registerComponent({
@@ -297,6 +316,7 @@ export function registerBuiltInComponents(): void {
         description: 'Dropdown select',
         render: createRenderFunction(select.Renderer),
         defaultProps: select.defaultProps,
+        getHTML: select.getHTML,
     });
 
     registerComponent({
@@ -309,6 +329,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(form.Renderer),
         defaultProps: form.defaultProps,
         styleProperties: form.styleProperties,
+        getHTML: form.getHTML,
     });
 
     // Navigation components
@@ -321,6 +342,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(link.Renderer),
         defaultProps: link.defaultProps,
         styleProperties: link.styleProperties,
+        getHTML: link.getHTML,
     });
 
     registerComponent({
@@ -331,6 +353,7 @@ export function registerBuiltInComponents(): void {
         description: 'Navigation menu',
         render: createRenderFunction(menu.Renderer),
         defaultProps: menu.defaultProps,
+        getHTML: menu.getHTML,
         createChildren: () => [
             { type: 'link', props: { text: 'Home', href: '#' } },
             { type: 'link', props: { text: 'About', href: '#' } },
@@ -346,6 +369,7 @@ export function registerBuiltInComponents(): void {
         description: 'Breadcrumb navigation',
         render: createRenderFunction(breadcrumb.Renderer),
         defaultProps: breadcrumb.defaultProps,
+        getHTML: breadcrumb.getHTML,
     });
 
     // Mockup Components

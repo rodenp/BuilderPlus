@@ -36,8 +36,8 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
             ? `${commonStyles.paddingTop} ${commonStyles.paddingRight} ${commonStyles.paddingBottom} ${commonStyles.paddingLeft}`
             : '8px 12px',
           border: commonStyles.borderWidth
-            ? `${commonStyles.borderWidth} ${commonStyles.borderStyle || 'solid'} ${commonStyles.borderColor || '#000'}`
-            : `1px solid ${canvasTheme.text}30`,
+            ? `${commonStyles.borderWidth} ${commonStyles.borderStyle || 'solid'} ${commonStyles.borderColor}`
+            : 'none',
           borderRadius: commonStyles.borderRadius || '4px',
           fontSize: '14px',
           backgroundColor: commonStyles.backgroundColor || 'transparent',

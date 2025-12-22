@@ -1,21 +1,22 @@
 import type { CanvasComponent } from '../../../types/component-types';
 import { extractCommonStyles } from '../types';
 
-export const getHTML = (component: CanvasComponent): string => {
+export const getHTML = (component: CanvasComponent, theme: import('../../../types/theme').Theme): string => {
   const { props } = component;
   const styles = extractCommonStyles(props);
+  const themeStyles = theme.styles;
 
   const styleString = [
     'display: inline-block',
     styles.paddingTop
       ? `padding: ${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}`
-      : 'padding: 12px 24px',
-    `background-color: ${styles.backgroundColor || '#2563eb'}`,
-    `color: ${styles.color || (props.textColor as string) || '#ffffff'}`,
+      : `padding: ${themeStyles.buttonPadding || '12px 24px'}`,
+    `background-color: ${styles.backgroundColor || themeStyles.buttonPrimaryBg || '#2563eb'}`,
+    `color: ${styles.color || (props.textColor as string) || themeStyles.buttonPrimaryText || '#ffffff'}`,
     styles.borderWidth
       ? `border: ${styles.borderWidth} ${styles.borderStyle || 'solid'} ${styles.borderColor || '#000'}`
       : 'border: none',
-    `border-radius: ${styles.borderRadius || '8px'}`,
+    `border-radius: ${styles.borderRadius || themeStyles.buttonBorderRadius || '4px'}`,
     'cursor: pointer',
     `font-size: ${styles.buttonFontSize || '14px'}`,
     `font-weight: ${styles.buttonFontWeight || 500}`,

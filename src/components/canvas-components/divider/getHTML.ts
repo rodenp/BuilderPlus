@@ -1,10 +1,11 @@
 import type { CanvasComponent } from '../../../types/component-types';
 import { extractCommonStyles } from '../types';
 
-export const getHTML = (component: CanvasComponent): string => {
+export const getHTML = (component: CanvasComponent, theme: import('../../../types/theme').Theme): string => {
   const { props } = component;
   const styles = extractCommonStyles(props);
-  const dividerColor = styles.dividerColor || (props.color as string) || 'rgba(0,0,0,0.1)';
+  const themeStyles = theme.styles;
+  const dividerColor = styles.dividerColor || (props.color as string) || themeStyles.borderColor || 'rgba(0,0,0,0.1)';
 
   const styleString = [
     'border: none',

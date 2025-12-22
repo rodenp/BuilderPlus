@@ -1,17 +1,18 @@
 import type { CanvasComponent } from '../../../types/component-types';
 import { extractCommonStyles } from '../types';
 
-export const getHTML = (component: CanvasComponent): string => {
+export const getHTML = (component: CanvasComponent, theme: import('../../../types/theme').Theme): string => {
   const { props } = component;
   const styles = extractCommonStyles(props);
+  const themeStyles = theme.styles;
   // const iconName = (props.icon as string) || 'Star'; // Not used in HTML export
   const size = parseInt((props.size as string) || '24', 10);
-  
+
   const styleString = [
     'display: inline-flex',
     'align-items: center',
     'justify-content: center',
-    `color: ${(props.color as string) || styles.color || '#000'}`,
+    `color: ${(props.color as string) || styles.color || themeStyles.textColor || '#000'}`,
     styles.backgroundColor ? `background-color: ${styles.backgroundColor}` : '',
     styles.width ? `width: ${styles.width}` : '',
     styles.height ? `height: ${styles.height}` : '',

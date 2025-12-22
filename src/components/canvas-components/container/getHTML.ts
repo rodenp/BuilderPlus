@@ -1,19 +1,24 @@
 import type { CanvasComponent } from '../../../types/component-types';
 import { extractCommonStyles } from '../types';
 
-export const getHTML = (component: CanvasComponent): string => {
-  const { props } = component;
+export const getHTML = async (
+  component: CanvasComponent,
+  theme: import('../../../types/theme').Theme,
+  renderChildren: (children: CanvasComponent[]) => Promise<string[]>,
+  isExport: boolean = false
+): Promise<string> => {
+  const { props, children } = component;
   const styles = extractCommonStyles(props);
+  const themeStyles = theme.styles;
   const hasBorder = styles.borderWidth && styles.borderWidth !== '0px';
 
   const styleString = [
-    `padding: ${styles.paddingTop ? `${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}` : (props.padding as string) || '16px'}`,
-    `background-color: ${styles.backgroundColor || 'transparent'}`,
-    `border: ${hasBorder
-      ? `${styles.borderWidth} ${styles.borderStyle || 'solid'} ${styles.borderColor || '#000'}`
-      : '1px dashed #cccccc'
-    }`,
-    `border-radius: ${styles.borderRadius || styles.containerBorderRadius || '4px'}`,
+    `padding: ${styles.paddingTop ? `${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}` : (props.padding as string) || themeStyles.containerPadding || '16px'}`,
+    `background-color: ${styles.backgroundColor || themeStyles.containerBg || 'transparent'}`,
+    hasBorder
+      ? `border: ${styles.borderWidth} ${styles.borderStyle || 'solid'} ${styles.borderColor || themeStyles.borderColor || '#000'}`
+      : (isExport ? 'border: none' : 'border: 1px dashed #cccccc'),
+    `border-radius: ${styles.borderRadius || styles.containerBorderRadius || themeStyles.borderRadius || '4px'}`,
     `min-height: 60px`,
     styles.width ? `width: ${styles.width}` : '',
     styles.height ? `height: ${styles.height}` : '',
@@ -29,5 +34,6 @@ export const getHTML = (component: CanvasComponent): string => {
     styles.gap ? `gap: ${styles.gap}` : '',
   ].filter(Boolean).join('; ');
 
-  return `<div style="${styleString}">Container</div>`;
+  const childrenHTML = (await renderChildren(children || [])).join('');
+  return `<div style="${styleString}">${childrenHTML}</div>`;
 };

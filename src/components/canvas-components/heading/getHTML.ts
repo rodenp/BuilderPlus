@@ -1,16 +1,28 @@
 import type { CanvasComponent } from '../../../types/component-types';
 import { extractCommonStyles } from '../types';
 
-export const getHTML = (component: CanvasComponent): string => {
+export const getHTML = (
+  component: CanvasComponent,
+  theme: import('../../../types/theme').Theme,
+  _renderChildren: (children: CanvasComponent[]) => Promise<string[]>,
+  _isExport: boolean = true
+): string => {
   const { props } = component;
   const styles = extractCommonStyles(props);
+  const themeStyles = theme.styles;
   const level = (props.level as string) || 'h2';
-  const fontSize = styles[`${level}FontSize` as string] || styles.fontSize || '24px';
+
+  // Resolve font size: Prop override > Component specific prop > Theme specific > Default
+  const fontSize = styles.fontSize ||
+    styles[`${level}FontSize` as string] ||
+    themeStyles[`${level}FontSize` as string] ||
+    '24px';
 
   const styleString = [
     `font-size: ${fontSize}`,
-    `font-weight: ${styles.headingFontWeight || 600}`,
-    styles.color ? `color: ${styles.color}` : '',
+    `font-weight: ${styles.headingFontWeight || themeStyles[`${level}FontWeight` as string] || 600}`,
+    `color: ${styles.color || themeStyles[`${level}Color` as string] || themeStyles.headingColor || themeStyles.textColor || '#171717'}`,
+    `line-height: ${styles.lineHeight || themeStyles[`${level}LineHeight` as string] || 1.2}`,
     'margin: 0',
     styles.marginTop ? `margin-top: ${styles.marginTop}` : '',
     styles.marginRight ? `margin-right: ${styles.marginRight}` : '',

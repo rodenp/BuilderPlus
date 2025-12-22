@@ -11,7 +11,7 @@ export const RichTextPropertyInput: React.FC<RichTextPropertyInputProps> = ({
     value,
     onChange,
     style,
-    placeholder
+
 }) => {
     const editorRef = useRef<HTMLDivElement>(null);
     const [isFocused, setIsFocused] = useState(false);

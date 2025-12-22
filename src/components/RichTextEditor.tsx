@@ -28,8 +28,8 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
     selectedElement,
     onContentChange,
     onEditingStart,
-    onEditingEnd,
-    className,
+
+
     defaultTextColor,
     hideToolbar,
     theme
@@ -411,7 +411,7 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
     const renderToolbar = () => {
         if (!showToolbar || !editorRef.current) return null;
 
-        const isParagraph = selectedElement.type === 'paragraph';
+
 
         return (
             <div

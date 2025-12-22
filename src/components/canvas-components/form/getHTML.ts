@@ -1,17 +1,22 @@
 import type { CanvasComponent } from '../../../types/component-types';
 import { extractCommonStyles } from '../types';
 
-export const getHTML = (component: CanvasComponent): string => {
-  const { props } = component;
+export const getHTML = async (
+  component: CanvasComponent,
+  theme: import('../../../types/theme').Theme,
+  renderChildren: (children: CanvasComponent[]) => Promise<string[]>
+): Promise<string> => {
+  const { props, children } = component;
   const styles = extractCommonStyles(props);
+  const themeStyles = theme.styles;
   const hasBorder = styles.borderWidth && styles.borderWidth !== '0px';
 
   const styleString = [
     `padding: ${styles.paddingTop ? `${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}` : (styles.formPadding || '20px')}`,
     `background-color: ${styles.backgroundColor || 'transparent'}`,
     `border: ${hasBorder
-      ? `${styles.borderWidth} ${styles.borderStyle || 'solid'} ${styles.borderColor || '#000'}`
-      : '1px dashed #cccccc'
+      ? `${styles.borderWidth} ${styles.borderStyle || 'solid'} ${styles.borderColor || themeStyles.borderColor || '#000'}`
+      : 'none'
     }`,
     `border-radius: ${styles.borderRadius || '4px'}`,
     styles.width ? `width: ${styles.width}` : '',
@@ -27,5 +32,6 @@ export const getHTML = (component: CanvasComponent): string => {
     styles.gap ? `gap: ${styles.gap}` : '',
   ].filter(Boolean).join('; ');
 
-  return `<form style="${styleString}">Form container</form>`;
+  const childrenHTML = (await renderChildren(children || [])).join('');
+  return `<form style="${styleString}">${childrenHTML}</form>`;
 };

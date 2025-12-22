@@ -103,10 +103,27 @@ export interface BodySettings {
   metaDescription: string;
   faviconUrl: string;
   activeCanvasThemeId: string;
+  // ... (previous properties)
   activeUIThemeId: string;
   customThemes: Theme[];
   // Page/Global level overrides that sit on top of the active theme
   styleOverrides?: GlobalStyles;
+
+  // Theme and Preview Settings
+  theme?: Record<string, any>; // For legacy theme support
+  fontFamily?: string;
+  baseFontSize?: number;
+  baseLineHeight?: number;
+
+  // Background Settings
+  backgroundImage?: string;
+  backgroundSize?: string;
+  backgroundPosition?: string;
+  backgroundRepeat?: string;
+
+  // Content Layout
+  contentWidth?: number;
+  contentPadding?: number;
 }
 
 export const defaultBodySettings: BodySettings = {
@@ -116,7 +133,13 @@ export const defaultBodySettings: BodySettings = {
   activeCanvasThemeId: 'light',
   activeUIThemeId: 'dark',
   customThemes: [],
-  styleOverrides: {}
+  styleOverrides: {},
+  theme: {},
+  fontFamily: 'Inter',
+  baseFontSize: 16,
+  baseLineHeight: 1.5,
+  contentWidth: 1200,
+  contentPadding: 20
 };
 
 /**
@@ -138,7 +161,19 @@ export function migrateBodySettings(settings: any): BodySettings {
     activeCanvasThemeId: settings?.defaultMode === 'dark' ? 'dark' : 'light',
     activeUIThemeId: 'dark', // Default UI to dark
     customThemes: [],
-    styleOverrides: {}
+    styleOverrides: {},
+
+    // Migration of legacy properties
+    theme: settings?.theme || {},
+    fontFamily: settings?.fontFamily || 'Inter',
+    baseFontSize: settings?.baseFontSize || 16,
+    baseLineHeight: settings?.baseLineHeight || 1.5,
+    backgroundImage: settings?.backgroundImage,
+    backgroundSize: settings?.backgroundSize,
+    backgroundPosition: settings?.backgroundPosition,
+    backgroundRepeat: settings?.backgroundRepeat,
+    contentWidth: settings?.contentWidth || 1200,
+    contentPadding: settings?.contentPadding || 20
   };
 
   // If legacy themes exist, we could optionally convert them to custom themes 

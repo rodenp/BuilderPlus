@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import type { CanvasComponent } from '../types/component-types';
 import { generateId } from '../types/component-types';
-import { getChildCreator, getDefaultProps } from '../components/canvas-components/register';
+import { getChildCreator } from '../components/canvas-components/register';
 
 export interface DragItem {
     id: string;
@@ -110,7 +110,7 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
         const componentId = generateId();
 
         // Get default props from registry
-        const defaultProps = getDefaultProps(componentDef.type);
+
 
         // Get initial children from definition OR from registered creator
         let initialChildren = componentDef.initialChildren || componentDef.children || [];
@@ -125,7 +125,7 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
         // Recursive helper to build component tree from definition
         const buildComponentTree = (def: any, parentId?: string): CanvasComponent => {
             const id = generateId();
-            const childDefaultProps = getDefaultProps(def.type);
+
 
             const children = (def.initialChildren || def.children || []).map((childDef: any) =>
                 buildComponentTree(childDef, id)

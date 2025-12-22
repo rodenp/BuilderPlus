@@ -1,9 +1,10 @@
 import type { CanvasComponent } from '../../../types/component-types';
 import { extractCommonStyles } from '../types';
 
-export const getHTML = (component: CanvasComponent): string => {
+export const getHTML = (component: CanvasComponent, theme: import('../../../types/theme').Theme): string => {
   const { props } = component;
   const styles = extractCommonStyles(props);
+  const themeStyles = theme.styles;
 
   const styleString = [
     'margin: 0',
@@ -15,9 +16,9 @@ export const getHTML = (component: CanvasComponent): string => {
     `padding-right: ${styles.paddingRight || '20px'}`,
     `padding-bottom: ${styles.paddingBottom || '12px'}`,
     `padding-left: ${styles.paddingLeft || '24px'}`,
-    `border-left: 4px solid ${styles.quoteBorderColor || (props.borderColor as string) || '#cccccc'}`,
-    `background-color: ${styles.quoteBg || styles.backgroundColor || '#f5f5f5'}`,
-    `color: ${styles.color || '#000'}`,
+    `border-left: 4px solid ${styles.quoteBorderColor || (props.borderColor as string) || themeStyles.borderColor || '#cccccc'}`,
+    `background-color: ${styles.quoteBg || styles.backgroundColor || themeStyles.cardBg || '#f5f5f5'}`,
+    `color: ${styles.color || themeStyles.textColor || '#000'}`,
     `font-style: ${styles.quoteFontStyle || 'italic'}`,
     styles.width ? `width: ${styles.width}` : '',
   ].filter(Boolean).join('; ');

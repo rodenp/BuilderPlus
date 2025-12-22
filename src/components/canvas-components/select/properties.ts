@@ -7,7 +7,15 @@ const contentFields: PropertyField[] = [
   { key: 'required', label: 'Required', type: 'boolean', defaultValue: false, group: 'content' },
 ];
 
-export const properties = createComponentProperties(contentFields);
+export const properties = createComponentProperties(contentFields, [], [], false, {
+  backgroundColor: { themeKey: 'inputBg' },
+  textColor: { themeKey: 'inputTextColor' },
+  borderColor: { themeKey: 'inputBorderColor' },
+  borderWidth: { themeKey: 'inputBorderWidth' },
+  borderStyle: { themeKey: 'inputBorderStyle' },
+  borderRadius: { themeKey: 'inputBorderRadius' },
+  padding: { themeKey: 'inputPadding' },
+});
 
 export const defaultProps = {
   label: '',

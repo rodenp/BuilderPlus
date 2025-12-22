@@ -38,7 +38,15 @@ export interface ComponentConfig {
   /** stylistic property metadata for this component */
   styleProperties?: StylePropertyDefinition[];
   /** Optional: Create default children when component is added */
+  /** Optional: Create default children when component is added */
   createChildren?: (parentId: string) => ChildComponentConfig[];
+  /** Optional: Generator function for component's HTML export */
+  getHTML?: (
+    component: import('../../types/component-types').CanvasComponent,
+    theme: import('../../types/theme').Theme,
+    renderChildren: (children: import('../../types/component-types').CanvasComponent[]) => Promise<string[]>,
+    isExport?: boolean
+  ) => Promise<string> | string;
 }
 
 /**
@@ -233,6 +241,11 @@ export function registerComponent(config: ComponentConfig): void {
   if (createChildren) {
     childCreators.set(type, createChildren);
   }
+
+  // Register HTML generator if provided
+  if (config.getHTML) {
+    htmlRegistry.register(type, config.getHTML);
+  }
 }
 
 // ============================================================================
@@ -312,14 +325,30 @@ export function clearRegistry(): void {
  */
 import { htmlRegistry } from '../../registries/html-registry';
 
+import type { Theme } from '../../types/theme';
+
 /**
  * Get the HTML string for a component
  * @internal
  */
-export async function getComponentHTML(component: import('../../types/component-types').CanvasComponent, _isExport: boolean = false): Promise<string> {
+export async function getComponentHTML(
+  component: import('../../types/component-types').CanvasComponent,
+  theme?: Theme,
+  _isExport: boolean = false
+): Promise<string> {
   const generator = htmlRegistry.getGenerator(component.type);
   if (generator) {
-    return generator(component);
+    // If theme is missing, provide a safe fallback to prevent crashes
+    const safeTheme = theme || { id: 'fallback', name: 'Fallback', styles: {} };
+
+    // Recursive render function passed to generators
+    const renderChildren = async (children: import('../../types/component-types').CanvasComponent[]): Promise<string[]> => {
+      if (!children || children.length === 0) return [];
+      const promises = children.map(child => getComponentHTML(child, safeTheme, _isExport));
+      return Promise.all(promises);
+    };
+
+    return generator(component, safeTheme, renderChildren, _isExport);
   }
 
   // Fallback for components without registered HTML generators

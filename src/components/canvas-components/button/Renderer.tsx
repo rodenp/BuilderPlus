@@ -23,7 +23,7 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
         fontSize: commonStyles.buttonFontSize || '14px',
         fontWeight: commonStyles.buttonFontWeight || 500,
       }}
-      onClick={(e) => {
+      onClick={(_e) => {
         // In preview mode or live site, this would navigate.
         if (component.props.actionType === 'link' && component.props.url) {
           // Prevent navigation in editor?

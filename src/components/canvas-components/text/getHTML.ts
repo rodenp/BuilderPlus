@@ -1,12 +1,20 @@
 import type { CanvasComponent } from '../../../types/component-types';
 import { extractCommonStyles } from '../types';
 
-export const getHTML = (component: CanvasComponent): string => {
+export const getHTML = (
+  component: CanvasComponent,
+  theme: import('../../../types/theme').Theme,
+  _renderChildren: (children: CanvasComponent[]) => Promise<string[]>,
+  _isExport: boolean = true
+): string => {
   const { props } = component;
   const styles = extractCommonStyles(props);
-  
+  const themeStyles = theme.styles;
+
   const styleString = [
-    `color: ${styles.color || '#000'}`,
+    `color: ${styles.color || themeStyles.textColor || '#171717'}`,
+    styles.fontSize ? `font-size: ${styles.fontSize}` : '',
+    styles.fontWeight ? `font-weight: ${styles.fontWeight}` : '',
     styles.marginTop ? `margin-top: ${styles.marginTop}` : '',
     styles.marginRight ? `margin-right: ${styles.marginRight}` : '',
     styles.marginBottom ? `margin-bottom: ${styles.marginBottom}` : '',

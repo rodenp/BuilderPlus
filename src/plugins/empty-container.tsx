@@ -17,7 +17,7 @@ import {
 // A minimal container based on "Track" but without header/title.
 // ============================================================================
 
-const EmptyContainerRenderer: React.FC<CanvasComponentProps> = ({ component, builderContext, canvasTheme, uiTheme, commonStyles }) => {
+const EmptyContainerRenderer: React.FC<CanvasComponentProps> = ({ component, builderContext, canvasTheme, uiTheme, activeThemeObject, commonStyles }) => {
     const {
         display, flexDirection, flexWrap, justifyContent, alignItems, gap,
         paddingTop, paddingRight, paddingBottom, paddingLeft,
@@ -54,6 +54,7 @@ const EmptyContainerRenderer: React.FC<CanvasComponentProps> = ({ component, bui
                 children={component.children || []}
                 builderContext={builderContext}
                 theme={uiTheme}
+                activeThemeObject={activeThemeObject || { id: 'default', name: 'Default', styles: {} }}
                 canvasTheme={canvasTheme}
                 style={layoutStyles as any}
                 emptyContent={
@@ -110,10 +111,37 @@ export function initEmptyContainerPlugin() {
             ...baseColorFields
         ],
         createChildren: () => [], // Start empty
-        getHTML: async (_component) => `
-            <div class="empty-container">
-                <!-- Content -->
-            </div>
-        `
+        getHTML: async (component, _theme, renderChildren, _isExport) => {
+            const { props, children } = component;
+            // Re-use common logic if possible, or manually build styles
+            const {
+                display, flexDirection, flexWrap, justifyContent, alignItems, gap,
+                paddingTop, paddingRight, paddingBottom, paddingLeft
+            } = props;
+
+            const styleString = [
+                `display: ${display || 'flex'}`,
+                `flex-direction: ${flexDirection || 'column'}`,
+                flexWrap ? `flex-wrap: ${flexWrap}` : '',
+                `justify-content: ${justifyContent || 'flex-start'}`,
+                `align-items: ${alignItems || 'stretch'}`,
+                `gap: ${gap !== undefined ? gap + 'px' : '16px'}`,
+                `padding: ${paddingTop || 16}px ${paddingRight || 16}px ${paddingBottom || 16}px ${paddingLeft || 16}px`,
+                `width: ${props.width || '100%'}`,
+                // Border styles
+                props.borderWidth ? `border-width: ${props.borderWidth}px` : '',
+                props.borderStyle ? `border-style: ${props.borderStyle}` : '',
+                props.borderColor ? `border-color: ${props.borderColor}` : '',
+                `border-radius: ${props.borderRadius || 0}px`,
+                // Background
+                props.backgroundColor ? `background-color: ${props.backgroundColor}` : '',
+            ].filter(Boolean).join('; ');
+
+            const childrenHTML = (await renderChildren(children || [])).join('');
+
+            return `<div class="empty-container" style="${styleString}">
+                ${childrenHTML}
+            </div>`;
+        }
     });
 }

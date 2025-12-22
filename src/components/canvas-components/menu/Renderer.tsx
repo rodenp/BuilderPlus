@@ -23,7 +23,7 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
         paddingRight: commonStyles.paddingRight || '8px',
         paddingBottom: commonStyles.paddingBottom || '8px',
         paddingLeft: commonStyles.paddingLeft || '8px',
-        backgroundColor: commonStyles.backgroundColor || `${canvasTheme.text}05`,
+        backgroundColor: commonStyles.backgroundColor || 'transparent',
         border: hasBorder
           ? `${commonStyles.borderWidth} ${commonStyles.borderStyle || 'solid'} ${commonStyles.borderColor || '#000'}`
           : `1px dashed ${canvasTheme.text}20`,

@@ -9,13 +9,24 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   const level = (props.level as string) || 'h2';
 
   // Use themeable font sizes if available, otherwise fallback to standard values
-  const fontSize = commonStyles[`${level}FontSize` as string] || commonStyles.fontSize || '24px';
+  // Prioritize level-specific size (h1FontSize) > generic heading size > generic font size > default
+  const fontSize = commonStyles[`${level}FontSize` as string] ||
+    commonStyles.headingFontSize ||
+    commonStyles.fontSize ||
+    '24px';
+
+  // Resolve color: level-specific > heading color > generic color
+  const color = commonStyles[`${level}Color` as string] ||
+    commonStyles.headingColor ||
+    commonStyles.color;
 
   const headingStyle: React.CSSProperties = {
+    ...commonStyles,
     fontSize: fontSize,
-    fontWeight: commonStyles.headingFontWeight || 600,
+    fontWeight: commonStyles[`${level}FontWeight` as string] || commonStyles.headingFontWeight || 600,
+    lineHeight: commonStyles[`${level}LineHeight` as string] || commonStyles.lineHeight || 1.2,
+    color: color,
     margin: 0,
-    ...commonStyles
   };
 
   const text = (props.text as string) || 'Heading';

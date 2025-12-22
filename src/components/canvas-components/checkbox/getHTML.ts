@@ -1,10 +1,11 @@
 import type { CanvasComponent } from '../../../types/component-types';
 import { extractCommonStyles } from '../types';
 
-export const getHTML = (component: CanvasComponent): string => {
+export const getHTML = (component: CanvasComponent, theme: import('../../../types/theme').Theme): string => {
   const { props } = component;
   const styles = extractCommonStyles(props);
-  
+  const themeStyles = theme.styles;
+
   const wrapperStyle = [
     'display: flex',
     'align-items: center',
@@ -22,7 +23,7 @@ export const getHTML = (component: CanvasComponent): string => {
   ].filter(Boolean).join('; ');
 
   const labelStyle = [
-    `color: ${styles.color || '#000'}`,
+    `color: ${styles.color || themeStyles.labelColor || themeStyles.textColor || '#000'}`,
     'font-size: 14px',
   ].filter(Boolean).join('; ');
 

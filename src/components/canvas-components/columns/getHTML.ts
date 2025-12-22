@@ -1,9 +1,16 @@
 import type { CanvasComponent } from '../../../types/component-types';
 import { extractCommonStyles } from '../types';
 
-export const getHTML = (component: CanvasComponent): string => {
-  const { props } = component;
+export const getHTML = async (
+  component: CanvasComponent,
+  _theme: import('../../../types/theme').Theme,
+  renderChildren: (children: CanvasComponent[]) => Promise<string[]>
+): Promise<string> => {
+  const { props, children } = component;
   const styles = extractCommonStyles(props);
+  // Unused themeStyles removed or kept if needed for fallback
+  // const themeStyles = theme.styles; 
+
   const columns = (props.columns as number) || 2;
   const gap = styles.columnGap || (props.gap as string) || '16px';
 
@@ -23,10 +30,6 @@ export const getHTML = (component: CanvasComponent): string => {
     styles.width ? `width: ${styles.width}` : '',
   ].filter(Boolean).join('; ');
 
-  // Generate column divs
-  const columnDivs = Array.from({ length: columns }, (_, i) =>
-    `<div style="min-height: 60px; border: 1px dashed #cccccc; border-radius: 4px; padding: 16px; display: flex; align-items: center; justify-content: center; color: #666; opacity: 0.5; font-size: 12px">Column ${i + 1}</div>`
-  ).join('');
-
-  return `<div style="${styleString}">${columnDivs}</div>`;
+  const childrenHTML = (await renderChildren(children || [])).join('');
+  return `<div style="${styleString}">${childrenHTML}</div>`;
 };

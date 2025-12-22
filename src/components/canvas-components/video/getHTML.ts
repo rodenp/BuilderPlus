@@ -2,19 +2,25 @@ import type { CanvasComponent } from '../../../types/component-types';
 import { extractCommonStyles } from '../types';
 import { convertToEmbedUrl, isVideoPlatformUrl } from '../../../types/media';
 
-export const getHTML = (component: CanvasComponent, isExport: boolean = true): string => {
+export const getHTML = (
+  component: CanvasComponent,
+  theme: import('../../../types/theme').Theme,
+  _renderChildren: (children: CanvasComponent[]) => Promise<string[]>,
+  isExport: boolean = true
+): string => {
   const { props } = component;
   const styles = extractCommonStyles(props);
+  const themeStyles = theme.styles;
 
   // Build style string
   const styleProps = {
-    backgroundColor: styles.backgroundColor || `rgba(0,0,0,0.05)`,
-    borderRadius: styles.borderRadius ? `${styles.borderRadius}px` : '8px',
+    backgroundColor: styles.backgroundColor || themeStyles.cardBg || `rgba(0,0,0,0.05)`,
+    borderRadius: styles.borderRadius ? `${styles.borderRadius}px` : (themeStyles.borderRadius || '8px'),
     padding: styles.paddingTop ?
       `${styles.paddingTop} ${styles.paddingRight} ${styles.paddingBottom} ${styles.paddingLeft}` :
       (styles.mediaPlaceholderPadding || '40px'),
     textAlign: 'center' as const,
-    color: styles.color || '#000000',
+    color: styles.color || themeStyles.textColor || '#000000',
     width: styles.width || undefined,
     height: styles.height || undefined,
     marginTop: styles.marginTop || undefined,

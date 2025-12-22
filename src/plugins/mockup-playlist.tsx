@@ -78,6 +78,7 @@ export function initMockupPlaylistPlugin() {
     };
 
     registerPlugin({
+        render: () => <div />,
         type: 'playlist',
         label: 'Playlist',
         category: 'mockup',

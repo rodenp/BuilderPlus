@@ -33,7 +33,7 @@ export function registerMockupPlugin() {
             description: `A ${label} item`,
             render: ({ props, styles }) => React.createElement(MockupItemRenderer, {
                 component: { id: 'preview', type, props: { ...props, type }, children: [] } as any,
-                canvasTheme: { bg: '', text: '', link: '' },
+                canvasTheme: { bg: '', text: '', link: '', primary: '' },
                 commonStyles: styles,
                 uiTheme: {} as any
             }),
