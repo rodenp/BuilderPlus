@@ -57,6 +57,51 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
         return { nodes: newNodes, removed };
     }, []);
 
+    // History State
+    const [past, setPast] = useState<CanvasComponent[][]>([]); // Stack of past component trees
+    const [future, setFuture] = useState<CanvasComponent[][]>([]); // Stack of future component trees
+
+    // Helper to record history before a state change
+    const recordHistory = useCallback(() => {
+        setPast(prev => {
+            const newPast = [...prev, components];
+            // Optional: Limit history size
+            if (newPast.length > 50) return newPast.slice(newPast.length - 50);
+            return newPast;
+        });
+        setFuture([]); // Clear future on new action
+    }, [components]);
+
+    const undo = useCallback(() => {
+        if (past.length === 0) return;
+
+        const previous = past[past.length - 1];
+        const newPast = past.slice(0, past.length - 1);
+
+        setPast(newPast);
+        setFuture(prev => [components, ...prev]);
+        setComponents(previous);
+    }, [past, components]);
+
+    const redo = useCallback(() => {
+        if (future.length === 0) return;
+
+        const next = future[0];
+        const newFuture = future.slice(1);
+
+        setFuture(newFuture);
+        setPast(prev => [...prev, components]);
+        setComponents(next);
+    }, [future, components]);
+
+    const canUndo = past.length > 0;
+    const canRedo = future.length > 0;
+
+    // Wrap setComponents to record history automatically?
+    // Doing strict "Action" based history is cleaner but requires refactoring all setters.
+    // For now, I will modify the exported actions to call recordHistory() BEFORE setComponents.
+    // But setComponents is async. So we record CURRENT 'components' state before calling setComponents.
+
     const insertInto = useCallback((nodes: CanvasComponent[], targetId: string | null, item: CanvasComponent, index: number): { nodes: CanvasComponent[], inserted: boolean } => {
         // If target is root (null)
         if (targetId === null) {
@@ -87,6 +132,7 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
     }, []);
 
     const moveComponent = useCallback((componentId: string, _sourceContainerId: string | null, targetContainerId: string | null, targetIndex: number) => {
+        recordHistory(); // Record BEFORE change
         setComponents(prev => {
             const { nodes: withoutItem, removed } = findAndRemove(prev, componentId);
             if (!removed) return prev; // Item not found
@@ -94,25 +140,23 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
             const { nodes: withItem, inserted } = insertInto(withoutItem, targetContainerId, removed, targetIndex);
 
             if (!inserted) {
-                // Restore if insert failed
-                // Note: Simplification, in real app handle error better
                 return prev;
             }
             return withItem;
         });
-    }, [findAndRemove, insertInto]);
+    }, [findAndRemove, insertInto, recordHistory]);
 
-    // ... existing code ...
-
-    // ... existing code ...
+    // ... existing wrapper functions must call recordHistory ...
 
     const addComponent = useCallback((componentDef: any, targetContainerId: string | null, index: number) => {
+        recordHistory();
         const componentId = generateId();
+        // ... (rest of logic same as before, essentially) ...
+        // Re-implementing to ensure recordHistory call is captured correctly in scope
 
-        // Get default props from registry
+        // ... logic duplication or we can reuse existing logic if we careful ...
+        // I will paste the body logic again to be safe.
 
-
-        // Get initial children from definition OR from registered creator
         let initialChildren = componentDef.initialChildren || componentDef.children || [];
 
         if (initialChildren.length === 0) {
@@ -122,15 +166,11 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
             }
         }
 
-        // Recursive helper to build component tree from definition
         const buildComponentTree = (def: any, parentId?: string): CanvasComponent => {
             const id = generateId();
-
-
             const children = (def.initialChildren || def.children || []).map((childDef: any) =>
                 buildComponentTree(childDef, id)
             );
-
             return {
                 id,
                 type: def.type,
@@ -143,7 +183,6 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
         const newComponent: CanvasComponent = {
             id: componentId,
             type: componentDef.type,
-            // DO NOT bake defaults here anymore. getMergedProps handles it.
             props: componentDef.props || {},
             children: initialChildren.map((childDef: any) =>
                 buildComponentTree(childDef, componentId)
@@ -157,16 +196,18 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
         });
 
         return componentId;
-    }, [insertInto]);
+    }, [insertInto, recordHistory]);
 
     const removeComponent = useCallback((componentId: string) => {
+        recordHistory();
         setComponents(prev => {
             const { nodes } = findAndRemove(prev, componentId);
             return nodes;
         });
-    }, [findAndRemove]);
+    }, [findAndRemove, recordHistory]);
 
     const copyComponent = useCallback((componentId: string) => {
+        recordHistory();
         setComponents(prev => {
             const parentId = findParent(componentId, prev);
             const parent = parentId ? findContainer(parentId, prev) : null;
@@ -177,7 +218,6 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
 
             const originalComponent = containerNodes[originalIndex];
 
-            // Deep copy with new IDs
             const deepCopy = (node: CanvasComponent): CanvasComponent => ({
                 ...node,
                 id: generateId(),
@@ -190,22 +230,15 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
             const { nodes, inserted } = insertInto(prev, parentId || null, newComponent, originalIndex + 1);
             return inserted ? nodes : prev;
         });
-    }, [findParent, findContainer, insertInto]);
+    }, [findParent, findContainer, insertInto, recordHistory]);
 
     const updateComponent = useCallback((componentId: string, updates: Partial<CanvasComponent> | ((prev: CanvasComponent) => Partial<CanvasComponent>)) => {
-        // console.log('updateComponent called', componentId, updates);
+        recordHistory();
         setComponents(prev => {
             const updateNode = (nodes: CanvasComponent[]): CanvasComponent[] => {
                 return nodes.map(node => {
                     if (node.id === componentId) {
                         const newProps = typeof updates === 'function' ? updates(node) : updates;
-                        // Handle strict props update if passed, or merge? 
-                        // The updates arg usually implies props updates or root level updates? 
-                        // Let's assume updates is root level object merger.
-                        // But wait, usually we update props. 
-                        // Let's support both or just merge properties.
-
-                        // If updates has "props", merge them.
                         if ('props' in newProps) {
                             return { ...node, ...newProps, props: { ...node.props, ...newProps.props } };
                         }
@@ -219,7 +252,7 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
             };
             return updateNode(prev);
         });
-    }, []);
+    }, [recordHistory]);
 
     return {
         components,
@@ -230,6 +263,10 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
         copyComponent,
         updateComponent,
         findParent,
-        findContainer
+        findContainer,
+        undo,
+        redo,
+        canUndo,
+        canRedo
     };
 };

@@ -70,7 +70,11 @@ function App() {
     removeComponent,
     findParent,
     findContainer,
-    updateComponent // Exporting this so components can update themselves
+    updateComponent, // Exporting this so components can update themselves
+    undo,
+    redo,
+    canUndo,
+    canRedo
   } = useBuilderState([]);
 
   // Selected component
@@ -481,6 +485,10 @@ function App() {
             onSettingsClick={() => setIsSettingsOpen(true)}
             mode={appMode}
             onBack={handleBackToProjects}
+            onUndo={undo}
+            onRedo={redo}
+            canUndo={canUndo}
+            canRedo={canRedo}
           />
         </div>
 

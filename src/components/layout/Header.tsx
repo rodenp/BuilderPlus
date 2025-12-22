@@ -11,6 +11,10 @@ interface HeaderProps {
   onBack?: () => void;
   theme: Theme;
   mode: AppMode;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -21,6 +25,10 @@ export const Header: React.FC<HeaderProps> = ({
   onBack,
   theme,
   mode,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
 }) => {
   const buttonStyle: React.CSSProperties = {
     display: 'flex',
@@ -65,10 +73,20 @@ export const Header: React.FC<HeaderProps> = ({
         )}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <button style={buttonStyle} title="Undo">
+          <button
+            style={{ ...buttonStyle, opacity: canUndo ? 1 : 0.5, cursor: canUndo ? 'pointer' : 'default' }}
+            title="Undo"
+            onClick={onUndo}
+            disabled={!canUndo}
+          >
             <Undo style={{ width: 18, height: 18 }} />
           </button>
-          <button style={buttonStyle} title="Redo">
+          <button
+            style={{ ...buttonStyle, opacity: canRedo ? 1 : 0.5, cursor: canRedo ? 'pointer' : 'default' }}
+            title="Redo"
+            onClick={onRedo}
+            disabled={!canRedo}
+          >
             <Redo style={{ width: 18, height: 18 }} />
           </button>
         </div>
