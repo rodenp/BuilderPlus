@@ -4,7 +4,7 @@ import type { CanvasComponent } from '../../types/component-types';
 import type { Theme as UITheme } from '../panels/property-panel/theme';
 import type { Theme } from '../../types/theme';
 import { DragTypes } from '../../types/dnd-types';
-import { getRenderer, getDefaultProps } from '../../components/canvas-components/register';
+import { getRenderer, getDefaultProps, isContainer as isRegisteredContainer } from '../../components/canvas-components/register';
 import { extractCommonStyles } from '../../components/canvas-components/types';
 
 import type { CanvasTheme } from '../../components/canvas-components/types';
@@ -86,9 +86,21 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
             }
 
             if (item.type === DragTypes.NEW_COMPONENT) {
+                // Check if we already instantiated this component during this drag operation
+                if ((item as any).isInstantiated && (item as any).id) {
+                    // Just move it
+                    if (item.parentId === parentId && dragIndex === hoverIndex) return;
+                    builderContext.moveComponent(item.id, item.parentId, parentId, hoverIndex);
+                    item.index = hoverIndex;
+                    item.parentId = parentId;
+                    return;
+                }
+
                 const newId = builderContext.addComponent(item.componentDef, parentId, hoverIndex);
-                item.type = DragTypes.ITEM;
-                item.id = newId;
+                // Mark as instantiated so we don't keep adding it, but DO NOT change item.type
+                // This preserves the component's actual type for validation in drop zones.
+                (item as any).isInstantiated = true;
+                (item as any).id = newId;
                 item.index = hoverIndex;
                 item.parentId = parentId;
                 return;
@@ -106,7 +118,9 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
 
     drag(drop(ref));
 
-    const isContainer = customContainerRegistry.isContainer(component.type);
+    // Improved container detection: check both system registry and custom registry
+    const isContainer = customContainerRegistry.isContainer(component.type) || isRegisteredContainer(component.type);
+
     const Renderer = getRenderer(component.type);
 
     const renderChild = (child: any) => (

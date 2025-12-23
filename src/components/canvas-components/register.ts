@@ -3,6 +3,7 @@ import type { CanvasComponentProps, CommonStyles } from './types';
 import type { PropertyField, PropertyGroup, ComponentProperties } from './properties';
 import { createComponentProperties } from './properties';
 import type { ComponentCategory } from '../../types/component-types';
+import { validationRegistry } from '../../registries/validation-registry';
 
 // ============================================================================
 // PUBLIC API - Types for consuming applications
@@ -37,7 +38,8 @@ export interface ComponentConfig {
   defaultProps: Record<string, unknown>;
   /** stylistic property metadata for this component */
   styleProperties?: StylePropertyDefinition[];
-  /** Optional: Create default children when component is added */
+  /** Optional: define allowed child types for containers */
+  allowedChildren?: string[] | 'ALL' | 'NONE';
   /** Optional: Create default children when component is added */
   createChildren?: (parentId: string) => ChildComponentConfig[];
   /** Optional: Generator function for component's HTML export */
@@ -226,10 +228,15 @@ export function registerComponent(config: ComponentConfig): void {
     globalStyleRegistry.registerStyleFields(styleProperties);
   }
 
-  // Store definition for components panel
+  // 2. Register validation rules if it's a container and rules are provided
+  if (config.isContainer && config.allowedChildren) {
+    validationRegistry.registerRule(type, config.allowedChildren);
+  }
+
+  // 3. Store definitions for the sidebar
   definitions.push({ type, label, category, icon, description });
 
-  // Store default props
+  // 4. Store default props
   const fullDefaultProps = {
     margin: { top: '0', right: '0', bottom: '0', left: '0' },
     padding: { top: '0', right: '0', bottom: '0', left: '0' },
@@ -237,12 +244,12 @@ export function registerComponent(config: ComponentConfig): void {
   };
   defaultPropsMap.set(type, fullDefaultProps);
 
-  // Store child creator if provided
+  // 5. Store child creator if provided
   if (createChildren) {
     childCreators.set(type, createChildren);
   }
 
-  // Register HTML generator if provided
+  // 6. Register HTML generator if provided
   if (config.getHTML) {
     htmlRegistry.register(type, config.getHTML);
   }
@@ -290,6 +297,22 @@ export function getDefaultProps(type: string): Record<string, unknown> {
  */
 export function isRegistered(type: string): boolean {
   return registry.has(type);
+}
+
+/**
+ * Check if a component type is a container
+ * @internal
+ */
+export function isContainer(type: string): boolean {
+  return registry.get(type)?.config.isContainer || false;
+}
+
+/**
+ * Get the full configuration for a component type
+ * @internal
+ */
+export function getComponentConfig(type: string): ComponentConfig | null {
+  return registry.get(type)?.config || null;
 }
 
 /**

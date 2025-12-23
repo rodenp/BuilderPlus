@@ -1,5 +1,4 @@
 import { registerComponent } from '../components/canvas-components/register';
-import { validationRegistry } from '../registries/validation-registry';
 import { customContainerRegistry } from '../config/custom-containers';
 import type { ComponentConfig } from '../components/canvas-components/register';
 import type { CanvasComponentProps } from '../components/canvas-components/types';
@@ -39,21 +38,17 @@ export interface PluginComponentConfig extends ComponentConfig {
  * 4. HTML Generation (Export)
  */
 export function registerPlugin(config: PluginComponentConfig) {
-    // 1. Register Validation Rules
-    if (config.isContainer && config.allowedChildren) {
-        validationRegistry.registerRule(config.type, config.allowedChildren);
-    }
-
-    // 2. Register Custom Container Logic (if provided)
+    // 1. Register Custom Container Logic (if provided)
     if (config.isContainer && config.customContainerRenderer) {
         customContainerRegistry.register(config.type, config.customContainerRenderer);
     }
 
-    // 3. Register HTML Generator (if provided)
+    // 2. Register HTML Generator (if provided)
     if (config.getHTML) {
         htmlRegistry.register(config.type, config.getHTML);
     }
 
-    // 4. Register Standard Component (UI & Basic Rendering)
+    // 3. Register Standard Component (UI & Basic Rendering)
+    // This now handles validation rule registration automatically
     registerComponent(config);
 }

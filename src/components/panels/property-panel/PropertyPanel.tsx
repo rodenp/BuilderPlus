@@ -216,7 +216,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
         return <ContainerPanel {...panelProps} />;
 
       case 'list':
-        return <ListPanel {...panelProps} />;
+        return;
 
       case 'menu':
         return <MenuPanel {...panelProps} />;

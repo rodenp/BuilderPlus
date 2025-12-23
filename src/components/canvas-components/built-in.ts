@@ -154,6 +154,7 @@ export function registerBuiltInComponents(): void {
         defaultProps: list.defaultProps,
         styleProperties: list.styleProperties,
         isContainer: true,
+        allowedChildren: ['text', 'paragraph', 'link', 'icon', 'image', 'button'],
         createChildren: () => [
             { type: 'text', props: { text: 'Item 1' } },
             { type: 'text', props: { text: 'Item 2' } },
@@ -232,6 +233,7 @@ export function registerBuiltInComponents(): void {
         icon: 'Columns',
         description: 'Column layout',
         isContainer: true,
+        allowedChildren: ['container'],
         render: createRenderFunction(columns.Renderer),
         defaultProps: columns.defaultProps,
         styleProperties: columns.styleProperties,
@@ -327,6 +329,7 @@ export function registerBuiltInComponents(): void {
         icon: 'ClipboardList',
         description: 'Form container',
         isContainer: true,
+        allowedChildren: ['input', 'textarea', 'checkbox', 'radio', 'select', 'button', 'divider', 'spacer', 'heading', 'paragraph', 'text'],
         render: createRenderFunction(form.Renderer),
         defaultProps: form.defaultProps,
         styleProperties: form.styleProperties,

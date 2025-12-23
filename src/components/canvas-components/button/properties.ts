@@ -35,6 +35,8 @@ export const defaultProps = {
   actionType: 'link',
   url: '',
   borderRadius: '8',
+  backgroundColor: '#2563eb',
+  textColor: '#ffffff',
   margin: { top: '0', right: '0', bottom: '0', left: '0' },
   padding: { top: '12', right: '24', bottom: '12', left: '24' },
 };

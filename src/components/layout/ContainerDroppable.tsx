@@ -73,11 +73,12 @@ export const ContainerDroppable: React.FC<ContainerDroppableProps> = ({
     drop(ref);
 
     const isActive = isOver && canDrop;
+    const isRejected = isOver && !canDrop;
 
     return (
         <div
             ref={ref}
-            className={`${className || ''} ${isActive ? 'ring-2 ring-blue-400 bg-blue-50/10' : ''}`}
+            className={`${className || ''} ${isActive ? 'ring-2 ring-blue-400 bg-blue-50/10' : ''} ${isRejected ? 'ring-2 ring-red-400 bg-red-50/10 cursor-no-drop' : ''}`}
             style={{
                 ...style,
                 // minHeight: children.length === 0 ? '20px' : 'auto', // REMOVED per user request
