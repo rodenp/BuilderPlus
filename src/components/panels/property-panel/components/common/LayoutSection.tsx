@@ -5,9 +5,9 @@ import { createInputStyle, createLabelStyle } from '../../styles';
 import type { ComponentPanelProps } from '../types';
 
 export const LayoutSection: React.FC<ComponentPanelProps> = ({
-    component,
     theme,
     updateProp,
+    resolveProp,
     expandedSections,
     toggleSection,
 }) => {
@@ -26,7 +26,7 @@ export const LayoutSection: React.FC<ComponentPanelProps> = ({
             <div style={{ marginTop: '12px' }}>
                 <label style={labelStyle}>Display</label>
                 <select
-                    value={(component.props.display as string) || 'block'}
+                    value={(resolveProp('display') as string)}
                     onChange={(e) => updateProp('display', e.target.value)}
                     style={inputStyle}
                 >
@@ -39,12 +39,12 @@ export const LayoutSection: React.FC<ComponentPanelProps> = ({
             </div>
 
             {/* Flex properties - shown when display is flex */}
-            {(component.props.display as string) === 'flex' && (
+            {(resolveProp('display') as string) === 'flex' && (
                 <>
                     <div style={{ marginTop: '12px' }}>
                         <label style={labelStyle}>Flex Direction</label>
                         <select
-                            value={(component.props.flexDirection as string) || 'row'}
+                            value={(resolveProp('flexDirection') as string)}
                             onChange={(e) => updateProp('flexDirection', e.target.value)}
                             style={inputStyle}
                         >
@@ -58,7 +58,7 @@ export const LayoutSection: React.FC<ComponentPanelProps> = ({
                     <div style={{ marginTop: '12px' }}>
                         <label style={labelStyle}>Flex Wrap</label>
                         <select
-                            value={(component.props.flexWrap as string) || 'nowrap'}
+                            value={(resolveProp('flexWrap') as string)}
                             onChange={(e) => updateProp('flexWrap', e.target.value)}
                             style={inputStyle}
                         >
@@ -70,12 +70,12 @@ export const LayoutSection: React.FC<ComponentPanelProps> = ({
 
                     <div style={{ marginTop: '12px' }}>
                         <label style={labelStyle}>
-                            {((component.props.flexDirection as string) || 'row').includes('column')
+                            {((resolveProp('flexDirection') as string) || 'row').includes('column')
                                 ? 'Justify Content (Vertical)'
                                 : 'Justify Content (Horizontal)'}
                         </label>
                         <select
-                            value={(component.props.justifyContent as string) || 'flex-start'}
+                            value={(resolveProp('justifyContent') as string)}
                             onChange={(e) => updateProp('justifyContent', e.target.value)}
                             style={inputStyle}
                         >
@@ -90,12 +90,12 @@ export const LayoutSection: React.FC<ComponentPanelProps> = ({
 
                     <div style={{ marginTop: '12px' }}>
                         <label style={labelStyle}>
-                            {((component.props.flexDirection as string) || 'row').includes('column')
+                            {((resolveProp('flexDirection') as string) || 'row').includes('column')
                                 ? 'Align Items (Horizontal)'
                                 : 'Align Items (Vertical)'}
                         </label>
                         <select
-                            value={(component.props.alignItems as string) || 'stretch'}
+                            value={(resolveProp('alignItems') as string)}
                             onChange={(e) => updateProp('alignItems', e.target.value)}
                             style={inputStyle}
                         >
@@ -111,7 +111,7 @@ export const LayoutSection: React.FC<ComponentPanelProps> = ({
                         <label style={labelStyle}>Gap</label>
                         <input
                             type="text"
-                            value={(component.props.gap as string) || '0'}
+                            value={(resolveProp('gap') as string)}
                             onChange={(e) => updateProp('gap', e.target.value)}
                             placeholder="0"
                             style={inputStyle}

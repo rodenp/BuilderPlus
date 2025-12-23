@@ -153,6 +153,7 @@ export function registerBuiltInComponents(): void {
         render: createRenderFunction(list.Renderer),
         defaultProps: list.defaultProps,
         styleProperties: list.styleProperties,
+        isContainer: true,
         createChildren: () => [
             { type: 'text', props: { text: 'Item 1' } },
             { type: 'text', props: { text: 'Item 2' } },

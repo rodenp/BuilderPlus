@@ -18,11 +18,17 @@ export const styleProperties: StylePropertyDefinition[] = [
   { key: 'listItemSpacing', label: 'Item Spacing', type: 'text', group: 'Layout', systemFallback: '4px' },
 ];
 
-export const properties = createComponentProperties(contentFields);
+export const properties = createComponentProperties(contentFields, [], [], true, {
+  padding: { themeKey: 'containerPadding' },
+  backgroundColor: { themeKey: 'containerBg' }
+});
 
 export const defaultProps = {
   items: ['Item 1', 'Item 2', 'Item 3'],
-  listStyle: 'disc',
+  listStyle: 'none',
+  display: 'flex',
+  flexDirection: 'row',
+  gap: '16',
   margin: { top: '0', right: '0', bottom: '0', left: '0' },
-  padding: { top: '0', right: '0', bottom: '0', left: '24' },
+  padding: { top: '16', right: '16', bottom: '16', left: '16' },
 };

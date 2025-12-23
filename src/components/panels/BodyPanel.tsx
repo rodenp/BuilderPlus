@@ -249,12 +249,15 @@ export const BodyPanel: React.FC<BodyPanelProps> = ({
                                             <LabelWithReset label={prop.label} propKey={prop.key} isOverridden={isOverridden} />
                                             <ColorPicker
                                                 label="" // Label handled above
-                                                color={currentValue as string}
+                                                color={overrideValue as string | undefined}
                                                 onChange={(val) => updateOverride(prop.key, val)}
                                                 isOpen={activeColorPicker === prop.key}
                                                 onToggle={() => setActiveColorPicker(activeColorPicker === prop.key ? null : prop.key)}
                                                 theme={theme}
-                                                themeDefault={(themeValue || prop.systemFallback || '').toString()}
+                                                // For Body, "Inherited" comes from the Theme.
+                                                inheritedValue={(themeValue || undefined) as string | undefined}
+                                                // "Theme Default" acts as System Fallback here
+                                                themeDefault={prop.systemFallback}
                                                 clearable
                                             />
                                         </div>

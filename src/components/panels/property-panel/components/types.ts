@@ -11,4 +11,6 @@ export interface ComponentPanelProps {
     onOpenMediaGallery?: (onSelect: (item: MediaItem) => void, allowedTypes?: ('image' | 'video' | 'audio' | 'file')[]) => void;
     expandedSections: string[];
     toggleSection: (id: string) => void;
+    inheritedProps: Record<string, any>;
+    themeDefaults: Record<string, any>;
 }

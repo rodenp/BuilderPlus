@@ -49,9 +49,9 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     // 1. Manual override takes precedence
     if (color !== null && color !== undefined) return color;
     // 2. Explicit null means "bypass component defaults and inherit from parent/context"
-    if (color === null) return inheritedValue || themeDefault || '#cccccc';
+    if (color === null) return inheritedValue || themeDefault || 'transparent';
     // 3. undefined means "use component default"
-    return defaultColor || inheritedValue || themeDefault || '#cccccc';
+    return defaultColor || inheritedValue || themeDefault || 'transparent';
   })().toUpperCase();
 
   const handleClear = (e: React.MouseEvent) => {
@@ -72,19 +72,17 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   };
 
   const hasValueToClear = (() => {
-    // If no value is set, nothing to clear
-    if (color === null || color === undefined) return false;
+    // 1. Explicitly set to null (Inherit) -> Nothing to clear
+    if (color === null) return false;
 
-    // Normalize colors for comparison (trim and lowercase)
-    const normalizedColor = color.trim().toLowerCase();
-    const normalizedDefault = defaultColor?.trim().toLowerCase();
-    const normalizedTheme = themeDefault?.trim().toLowerCase();
+    // 2. User override (string) -> Always clearable
+    if (typeof color === 'string') return true;
 
-    // Only set "clearable" if it's different from ALL available defaults
-    const isDefault = normalizedColor === normalizedDefault;
-    const isTheme = normalizedColor === normalizedTheme;
+    // 3. No override (undefined) -> Clearable ONLY if there is a component default to clear
+    // (i.e., we are currently showing the default, and clearing makes it null/inherit)
+    if (color === undefined && defaultColor !== undefined) return true;
 
-    return !isDefault && !isTheme;
+    return false;
   })();
 
   return (

@@ -157,9 +157,9 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
     return resolveProperty(
       component.props,
       key,
-      defaultProps?.[key],
+      defaultProps ? defaultProps[key] : undefined,
       (themeKey && activeThemeObject) ? activeThemeObject.styles[themeKey] : undefined,
-      systemFallback
+      inheritedProps?.[key] ?? systemFallback
     );
   };
 
@@ -172,6 +172,8 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
     onOpenMediaGallery,
     expandedSections,
     toggleSection,
+    inheritedProps,
+    themeDefaults: resolvedThemeDefaults,
   };
 
   // Render component-specific properties

@@ -11,7 +11,8 @@ export const ColorSection: React.FC<ComponentPanelProps> = ({
     updateProp,
     expandedSections,
     toggleSection,
-    // resolveProp, // using inheritedProps mostly
+    inheritedProps,
+    themeDefaults
 }) => {
     const [showBgPicker, setShowBgPicker] = useState(false);
     const [showTextPicker, setShowTextPicker] = useState(false);
@@ -58,10 +59,8 @@ export const ColorSection: React.FC<ComponentPanelProps> = ({
                 theme={theme}
                 clearable
                 defaultColor={defaultProps.backgroundColor as string}
-            // For accurate theme defaults, we might need to export the helper from PropertyPanel or pass it down.
-            // For now, omitting strict theme default display or using a placeholder if needed.
-            // Or better: Pass `inheritedProps` / `themeDefaults` to all simple panels if needed?
-            // Let's check if we can live without it for a moment or if we should add it to props.
+                themeDefault={themeDefaults.backgroundColor}
+                inheritedValue={inheritedProps.backgroundColor}
             />
             <ColorPicker
                 label="Text Color"
@@ -75,6 +74,8 @@ export const ColorSection: React.FC<ComponentPanelProps> = ({
                 theme={theme}
                 clearable
                 defaultColor={defaultProps.textColor as string || defaultProps.color as string}
+                themeDefault={themeDefaults.textColor}
+                inheritedValue={inheritedProps.textColor || inheritedProps.color}
             />
         </Section>
     );
