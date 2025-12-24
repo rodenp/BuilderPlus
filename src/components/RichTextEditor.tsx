@@ -21,21 +21,25 @@ interface RichTextEditorProps {
     className?: string;
     defaultTextColor?: string;
     hideToolbar?: boolean;
+    initialContent?: string;
     theme?: Theme;
 }
 
-export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>(({
-    selectedElement,
-    onContentChange,
-    onEditingStart,
-
-
-    defaultTextColor,
-    hideToolbar,
-    theme
-}, ref) => {
+export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditorProps>((props, ref) => {
+    const {
+        selectedElement,
+        onContentChange,
+        onEditingStart,
+        onEditingEnd,
+        className,
+        defaultTextColor,
+        hideToolbar,
+        initialContent,
+        theme
+    } = props;
     const editorRef = useRef<HTMLDivElement>(null);
-    const [lastElementId, setLastElementId] = useState<string>('');
+    const [isReady, setIsReady] = useState(false);
+    const [lastElementId, setLastElementId] = useState<string | null>(null);
     const [showToolbar, setShowToolbar] = useState(false);
 
     // Expose methods to parent
@@ -158,18 +162,18 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
 
     // Sync content from props if changed externally (e.g. Property Panel) and NOT focused
     useEffect(() => {
-        if (editorRef.current && selectedElement.id === lastElementId) {
+        if (editorRef.current && selectedElement.id === lastElementId && isReady) {
             const currentContent = editorRef.current.innerHTML;
-            const rawNew = (selectedElement.props.text as string) || (selectedElement.props.content as string);
-            const newContent = (rawNew !== undefined && rawNew !== null && rawNew !== '') ? rawNew : 'Text';
+            const rawNew = (selectedElement.props.text as string) || (selectedElement.props.content as string) || initialContent;
+            const newContent = (rawNew !== undefined && rawNew !== null && rawNew !== '') ? rawNew : '';
 
             // Only update if content is different AND we are not the active element (prevent cursor jumping)
             if (currentContent !== newContent && document.activeElement !== editorRef.current) {
-                editorRef.current.innerHTML = newContent || 'Text';
+                editorRef.current.innerHTML = newContent || '';
                 styleLinks(editorRef.current);
             }
         }
-    }, [selectedElement.props.text, selectedElement.props.content, lastElementId, selectedElement.id]);
+    }, [selectedElement.props.text, selectedElement.props.content, lastElementId, selectedElement.id, initialContent, isReady]);
 
     // Initial load and ID change
     useEffect(() => {
@@ -178,11 +182,12 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
         // For now allowing all as long as they have content/text prop mapping handled by parent
         if (editorRef.current && selectedElement.id !== lastElementId) {
             // Mapping content logic: in builderplus content is often in .props.text
-            const rawContent = (selectedElement.props.text as string) || (selectedElement.props.content as string);
-            const initialContent = (rawContent !== undefined && rawContent !== null && rawContent !== '') ? rawContent : 'Text';
+            const rawContent = (selectedElement.props.text as string) || (selectedElement.props.content as string) || initialContent;
+            const contentToSet = (rawContent !== undefined && rawContent !== null && rawContent !== '') ? rawContent : '';
 
-            editorRef.current.innerHTML = initialContent;
+            editorRef.current.innerHTML = contentToSet;
             setLastElementId(selectedElement.id);
+            setIsReady(true);
 
             // Style all existing links
             styleLinks(editorRef.current);
@@ -238,13 +243,13 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
                 characterData: true
             });
 
-            // Focus the editor after a brief delay
+            // Focus the editor more quickly
             setTimeout(() => {
                 if (editorRef.current) {
                     editorRef.current.focus();
                     setShowToolbar(true);
                 }
-            }, 100);
+            }, 50);
 
             return () => {
                 if (editorRef.current) {
@@ -256,27 +261,27 @@ export const RichTextEditor = React.forwardRef<RichTextEditorRef, RichTextEditor
     }, [selectedElement.id, lastElementId, selectedElement.type]);
 
     const updateContent = useCallback(() => {
-        if (editorRef.current && onContentChange) {
-            let html = editorRef.current.innerHTML;
+        // Guard: Don't emit changes if we aren't ready or if content is magically empty when it shouldn't be
+        if (!isReady || !editorRef.current || !onContentChange) return;
 
-            // Clean up: Unwrap top-level div/p if they are the only child and have no attributes
-            // This prevents "<div>text</div>" from showing in Property Panel as "<div>text</div>" repeatedly
-            // and keeps simple text looking like simple text.
-            const temp = document.createElement('div');
-            temp.innerHTML = html;
+        let html = editorRef.current.innerHTML;
 
-            if (temp.childNodes.length === 1) {
-                const child = temp.firstChild as HTMLElement;
-                if ((child.nodeName === 'DIV' || child.nodeName === 'P') && child.attributes.length === 0) {
-                    html = child.innerHTML;
-                }
-            } else if (html === '<br>') {
-                html = '';
+        // Clean up: Unwrap top-level div/p if they are the only child and have no attributes
+        // This prevents "<div>text</div>" from showing in Property Panel as "<div>text</div>" repeatedly
+        // and keeps simple text looking like simple text.
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+
+        if (temp.childNodes.length === 1) {
+            const child = temp.firstChild as HTMLElement;
+            if ((child.nodeName === 'DIV' || child.nodeName === 'P') && child.attributes.length === 0) {
+                html = child.innerHTML;
             }
-
-            onContentChange(html);
+        } else if (html === '<br>') {
+            html = '';
         }
-    }, [onContentChange]);
+        onContentChange(html);
+    }, [isReady, onContentChange]);
 
     const saveLinkModal = () => {
         const { linkElement, text, url, isEdit, savedRange } = linkModal;

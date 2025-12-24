@@ -98,7 +98,6 @@ export function initEmptyContainerPlugin() {
             padding: { top: '16', right: '16', bottom: '16', left: '16' },
             margin: { top: '0', right: '0', bottom: '0', left: '0' },
             backgroundColor: 'transparent',
-            borderRadius: 8,
             borderWidth: 1,
             borderColor: '#334155',
             borderStyle: 'dashed',

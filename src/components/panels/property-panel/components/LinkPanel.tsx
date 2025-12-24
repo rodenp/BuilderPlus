@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'lucide-react';
 import { Section } from '../Section';
 import { createInputStyle, createLabelStyle } from '../styles';
+import { stripHtml } from '../../../../utils/text';
 import type { ComponentPanelProps } from './types';
 
 export const LinkPanel: React.FC<ComponentPanelProps> = ({
@@ -28,7 +29,7 @@ export const LinkPanel: React.FC<ComponentPanelProps> = ({
                 <label style={labelStyle}>Link Text</label>
                 <input
                     type="text"
-                    value={(component.props.text as string) || ''}
+                    value={stripHtml((component.props.text as string) || '')}
                     onChange={(e) => updateProp('text', e.target.value)}
                     placeholder="Link text..."
                     style={inputStyle}

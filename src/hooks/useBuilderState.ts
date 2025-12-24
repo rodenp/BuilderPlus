@@ -208,6 +208,8 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
 
     const copyComponent = useCallback((componentId: string) => {
         recordHistory();
+        let newId: string | null = null;
+
         setComponents(prev => {
             const parentId = findParent(componentId, prev);
             const parent = parentId ? findContainer(parentId, prev) : null;
@@ -218,18 +220,26 @@ export const useBuilderState = (initialComponents: CanvasComponent[] = []) => {
 
             const originalComponent = containerNodes[originalIndex];
 
-            const deepCopy = (node: CanvasComponent): CanvasComponent => ({
-                ...node,
-                id: generateId(),
-                children: node.children?.map(deepCopy),
-                props: { ...node.props }
-            });
+            const deepCopy = (node: CanvasComponent, pId?: string): CanvasComponent => {
+                const id = generateId();
+                if (!newId && node.id === originalComponent.id) newId = id; // Track the top-level new ID
 
-            const newComponent = deepCopy(originalComponent);
+                return {
+                    ...node,
+                    id,
+                    parentId: pId,
+                    children: node.children?.map(child => deepCopy(child, id)),
+                    props: { ...node.props }
+                };
+            };
+
+            const newComponent = deepCopy(originalComponent, parentId || undefined);
 
             const { nodes, inserted } = insertInto(prev, parentId || null, newComponent, originalIndex + 1);
             return inserted ? nodes : prev;
         });
+
+        return newId;
     }, [findParent, findContainer, insertInto, recordHistory]);
 
     const updateComponent = useCallback((componentId: string, updates: Partial<CanvasComponent> | ((prev: CanvasComponent) => Partial<CanvasComponent>)) => {

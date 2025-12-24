@@ -68,6 +68,7 @@ function App() {
     moveComponent,
     addComponent,
     removeComponent,
+    copyComponent,
     findParent,
     findContainer,
     updateComponent, // Exporting this so components can update themselves
@@ -230,6 +231,7 @@ function App() {
     moveComponent,
     addComponent,
     removeComponent,
+    copyComponent,
     updateComponent, // Add to context
     findParent,
     findContainer,

@@ -1,6 +1,7 @@
 import React from 'react';
 import type { PropertyInputProps } from './types';
 import { createInputStyle } from '../../styles';
+import { stripHtml } from '../../../../../utils/text';
 
 export const TextInput: React.FC<PropertyInputProps> = ({
     value,
@@ -12,7 +13,7 @@ export const TextInput: React.FC<PropertyInputProps> = ({
     return (
         <input
             type="text"
-            value={(value as string) || ''}
+            value={stripHtml((value as string) || '')}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             style={inputStyle}

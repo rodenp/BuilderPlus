@@ -4,6 +4,7 @@ import { Type, Box } from 'lucide-react';
 import { Section } from '../Section';
 import { createInputStyle, createLabelStyle } from '../styles';
 import { RichTextPropertyInput } from '../RichTextPropertyInput';
+import { getDefaultProps } from '../../../canvas-components/register';
 import type { ComponentPanelProps } from './types';
 
 export const TextPanel: React.FC<ComponentPanelProps> = ({
@@ -28,12 +29,20 @@ export const TextPanel: React.FC<ComponentPanelProps> = ({
             >
                 <div>
                     <label style={labelStyle}>Text</label>
-                    <RichTextPropertyInput
-                        value={(component.props.text as string) || ''}
-                        onChange={(val) => updateProp('text', val)}
-                        placeholder="Enter text..."
-                        style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
-                    />
+                    {(() => {
+                        const defaults = getDefaultProps('text');
+                        const value = component.props.text as string;
+                        const displayValue = value ?? (defaults.text as string) ?? '';
+
+                        return (
+                            <RichTextPropertyInput
+                                value={displayValue}
+                                onChange={(val) => updateProp('text', val)}
+                                placeholder="Enter text..."
+                                style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
+                            />
+                        );
+                    })()}
                 </div>
             </Section>
 

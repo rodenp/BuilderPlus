@@ -7,7 +7,7 @@ import {
 import type { Theme } from '../panels/property-panel/theme';
 import { getComponentIcon } from '../../utils/getComponentIcon';
 import { RichTextEditor, type RichTextEditorRef } from '../RichTextEditor';
-import { isContainer as isRegisteredContainer } from '../../components/canvas-components/register';
+import { getDefaultProps } from '../canvas-components/register';
 
 interface SelectionOverlayProps {
     selectedId: string | null;
@@ -69,20 +69,44 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
 
     const editorRef = useRef<RichTextEditorRef>(null);
     const animationFrameRef = useRef<number | undefined>(undefined);
-    const prevSelectedId = useRef<string | null>(null);
 
-    // 1. Hook Order - Must be before any early returns
+    // 1. Selection Metadata & Edit State (Synchronous response to selectedId)
     useEffect(() => {
         if (!selectedId) {
-            setRect(null);
-            setInnerRect(null);
+            setTargetType('');
             setTargetComponent(null);
             setIsEditing(false);
             setToolbarMode('component');
             return;
         }
 
-        const updateRect = () => {
+        const component = builderContext.findContainer(selectedId);
+        if (component) {
+            // Update metadata immediately
+            setTargetType(component.type);
+            setTargetComponent(component);
+
+            // Auto-open editor for text components
+            const isText = ['paragraph', 'rich-text', 'text-block', 'heading', 'text'].includes(component.type);
+            if (isText) {
+                setIsEditing(true);
+                setToolbarMode('text');
+            } else {
+                setIsEditing(false);
+                setToolbarMode('component');
+            }
+        }
+    }, [selectedId, builderContext]);
+
+    // 2. Positioning Loop (Independent of metadata updates)
+    useEffect(() => {
+        if (!selectedId) {
+            setRect(null);
+            setInnerRect(null);
+            return;
+        }
+
+        const updatePosition = () => {
             const wrapper = document.getElementById(`component-${selectedId}`);
             if (wrapper) {
                 // Wide rect: the full container (for the blue selection frame)
@@ -92,41 +116,21 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
                 // Tight rect: the actual button or text element (for the editor overlay)
                 const actualElement = wrapper.firstElementChild || wrapper;
                 setInnerRect(actualElement.getBoundingClientRect());
-
-                const component = builderContext.findContainer(selectedId);
-                if (component) {
-                    setTargetType(component.type);
-                    setTargetComponent(component);
-
-                    // Check if it's a text-editable type for auto-opening the editor
-                    const isText = ['paragraph', 'rich-text', 'text-block', 'heading', 'text'].includes(component.type);
-
-                    // Auto-open editor for text components - ONLY if we just selected it
-                    if (isText && selectedId !== prevSelectedId.current) {
-                        setIsEditing(true);
-                        setToolbarMode('text');
-                    } else if (selectedId !== prevSelectedId.current) {
-                        // Reset editing state if we switch to a non-text component
-                        setIsEditing(false);
-                        setToolbarMode('component');
-                    }
-                }
             } else {
                 setRect(null);
                 setInnerRect(null);
             }
-            prevSelectedId.current = selectedId;
-            animationFrameRef.current = requestAnimationFrame(updateRect);
+            animationFrameRef.current = requestAnimationFrame(updatePosition);
         };
 
-        updateRect();
+        updatePosition();
 
         return () => {
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
             }
         };
-    }, [selectedId, builderContext]);
+    }, [selectedId]);
 
     // 2. Removed outline suppress logic - consolidated in renderer for better performance
 
@@ -185,19 +189,28 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
                 }}
                 onMouseDown={(e) => e.stopPropagation()}
             >
-                <RichTextEditor
-                    ref={editorRef}
-                    selectedElement={targetComponent}
-                    hideToolbar={true}
-                    defaultTextColor={canvasTheme.text}
-                    theme={theme}
-                    onContentChange={(content) => {
-                        builderContext.updateComponent(selectedId, { props: { text: content, content: content } });
-                    }}
-                    onEditingEnd={() => setIsEditing(false)}
-                    className="pointer-events-auto h-full"
-                />
-            </div>,
+                {(() => {
+                    const defaults = getDefaultProps(targetType);
+                    const initialContent = targetComponent.props.text ?? targetComponent.props.content ?? defaults.text ?? defaults.content ?? '';
+
+                    return (
+                        <RichTextEditor
+                            ref={editorRef}
+                            selectedElement={targetComponent}
+                            initialContent={initialContent}
+                            hideToolbar={true}
+                            defaultTextColor={canvasTheme.text}
+                            theme={theme}
+                            onContentChange={(content) => {
+                                builderContext.updateComponent(selectedId, { props: { text: content } });
+                            }}
+                            onEditingEnd={() => setIsEditing(false)}
+                            className="pointer-events-auto h-full"
+                        />
+                    );
+                })()}
+            </div>
+            ,
             document.body
         )
     );
@@ -237,6 +250,7 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
                             fontSize: '11px',
                             fontWeight: 500,
                             pointerEvents: 'auto',
+                            border: '1px solid #000',
                         }}
                     >
                         {toolbarMode === 'component' ? (
@@ -289,7 +303,12 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
 
                                 {/* Clone Button */}
                                 <ToolbarIconButton
-                                    onClick={() => { if (selectedId) builderContext.copyComponent(selectedId); }}
+                                    onClick={() => {
+                                        if (selectedId) {
+                                            const newId = builderContext.copyComponent(selectedId);
+                                            if (newId) builderContext.selectComponent(newId);
+                                        }
+                                    }}
                                     icon={Copy}
                                     title="Clone"
                                     theme={theme}
@@ -326,7 +345,9 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
                                 <ToolbarIconButton onClick={() => editorRef.current?.execCommand('justifyRight')} icon={AlignRight} title="Align Right" color="#fff" theme={theme} />
                                 <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.3)', margin: '0 2px' }} />
                                 <ToolbarIconButton onClick={() => editorRef.current?.openLinkModal()} icon={LinkIcon} title="Insert Link" color="#fff" theme={theme} />
-                                <ToolbarIconButton onClick={() => editorRef.current?.openImageGallery()} icon={ImageIcon} title="Insert Image" color="#fff" theme={theme} />
+                                {isRichText && (
+                                    <ToolbarIconButton onClick={() => editorRef.current?.openImageGallery()} icon={ImageIcon} title="Insert Image" color="#fff" theme={theme} />
+                                )}
                                 <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.3)', margin: '0 2px' }} />
 
                                 <ToolbarIconButton

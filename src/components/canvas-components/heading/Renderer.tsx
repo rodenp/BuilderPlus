@@ -34,16 +34,16 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
   // Render the appropriate heading level
   switch (level) {
     case 'h1':
-      return <h1 style={headingStyle}>{text}</h1>;
+      return <h1 style={headingStyle} dangerouslySetInnerHTML={{ __html: text }} />;
     case 'h3':
-      return <h3 style={headingStyle}>{text}</h3>;
+      return <h3 style={headingStyle} dangerouslySetInnerHTML={{ __html: text }} />;
     case 'h4':
-      return <h4 style={headingStyle}>{text}</h4>;
+      return <h4 style={headingStyle} dangerouslySetInnerHTML={{ __html: text }} />;
     case 'h5':
-      return <h5 style={headingStyle}>{text}</h5>;
+      return <h5 style={headingStyle} dangerouslySetInnerHTML={{ __html: text }} />;
     case 'h6':
-      return <h6 style={headingStyle}>{text}</h6>;
+      return <h6 style={headingStyle} dangerouslySetInnerHTML={{ __html: text }} />;
     default:
-      return <h2 style={headingStyle}>{text}</h2>;
+      return <h2 style={headingStyle} dangerouslySetInnerHTML={{ __html: text }} />;
   }
 };

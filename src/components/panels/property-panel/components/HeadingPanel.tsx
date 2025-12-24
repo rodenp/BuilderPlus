@@ -3,6 +3,8 @@ import React from 'react';
 import { Type } from 'lucide-react';
 import { Section } from '../Section';
 import { createInputStyle, createLabelStyle } from '../styles';
+import { RichTextPropertyInput } from '../RichTextPropertyInput';
+import { getDefaultProps } from '../../../canvas-components/register';
 import type { ComponentPanelProps } from './types';
 
 export const HeadingPanel: React.FC<ComponentPanelProps> = ({
@@ -26,13 +28,22 @@ export const HeadingPanel: React.FC<ComponentPanelProps> = ({
         >
             <div>
                 <label style={labelStyle}>Heading Text</label>
-                <input
-                    type="text"
-                    value={(resolveProp('text') as string) || ''}
-                    onChange={(e) => updateProp('text', e.target.value)}
-                    placeholder="Enter heading..."
-                    style={inputStyle}
-                />
+                {(() => {
+                    const defaults = getDefaultProps('heading');
+                    const value = resolveProp('text') as string;
+                    // If the value is explicitly provided in props, use it. 
+                    // Otherwise, we show the default but don't force it into the data until edited.
+                    const displayValue = value ?? (defaults.text as string) ?? '';
+
+                    return (
+                        <RichTextPropertyInput
+                            value={displayValue}
+                            onChange={(val) => updateProp('text', val)}
+                            placeholder="Enter heading..."
+                            style={{ ...inputStyle, minHeight: '32px' }}
+                        />
+                    );
+                })()}
             </div>
             <div>
                 <label style={labelStyle}>Heading Level</label>

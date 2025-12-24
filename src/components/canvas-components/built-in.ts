@@ -141,6 +141,7 @@ export function registerBuiltInComponents(): void {
         description: 'Inline text',
         render: createRenderFunction(text.Renderer),
         defaultProps: text.defaultProps,
+        styleProperties: text.styleProperties,
         getHTML: text.getHTML,
     });
 

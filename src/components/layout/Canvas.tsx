@@ -20,7 +20,7 @@ interface CanvasProps {
     selectedComponentId?: string | null;
     onSelectComponent?: (id: string | null) => void;
     previewMode?: boolean;
-    builderContext: any; // Type strictly later
+    builderContext: any;
 }
 
 export const Canvas: React.FC<CanvasProps> = (props) => {
@@ -47,7 +47,6 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
         }
     };
 
-    // Resolve the active theme from registry or custom themes
     const activeThemeObject = useMemo(() => {
         const systemTheme = globalThemeRegistry.getTheme(bodySettings.activeCanvasThemeId);
         let baseTheme = systemTheme;
@@ -57,7 +56,6 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                 globalThemeRegistry.getTheme('light')!;
         }
 
-        // Apply global styles override on top
         if (bodySettings.styleOverrides && Object.keys(bodySettings.styleOverrides).length > 0) {
             return {
                 ...baseTheme,
@@ -71,8 +69,6 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
         return baseTheme;
     }, [bodySettings.activeCanvasThemeId, bodySettings.customThemes, bodySettings.styleOverrides]);
 
-    // Derive "isDark" for UI contrast (overlays, drop zones)
-    // Heuristic: theme id contains 'dark' or we could check backgroundColor brightness
     const isCanvasDark = bodySettings.activeCanvasThemeId === 'dark' ||
         bodySettings.activeCanvasThemeId.includes('dark');
 
@@ -102,26 +98,124 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
         }
     };
 
-    // React DnD implementation for Root Canvas
-    const [{ isOver }, drop] = useDrop({
+    const [{ isOver, isStart, isEnd, isRow }, drop] = useDrop({
         accept: [DragTypes.NEW_COMPONENT, DragTypes.CONTAINER, DragTypes.ITEM],
         drop: (item: any, monitor) => {
             if (monitor.didDrop()) return;
 
-            // If dropping a new component from sidebar
-            if (item.type === 'NEW_COMPONENT' && item.componentDef) {
-                // Add to root
-                builderContext.addComponent(item.componentDef, null, components.length); // Add to end
+            if (item.id && (item as any).isInstantiated) {
+                builderContext.updateComponent(item.id, { props: { isPlaceholder: false } });
             }
-            // If moving an existing component to root
+
+            const targetIndex = (item as any).index ?? components.length;
+
+            if (item.type === 'NEW_COMPONENT' && item.componentDef) {
+                if (item.isInstantiated) return;
+                builderContext.addComponent(item.componentDef, null, targetIndex);
+            }
             else if (item.id) {
-                builderContext.moveComponent(item.id, item.parentId, null, components.length);
+                builderContext.moveComponent(item.id, item.parentId, null, targetIndex);
             }
         },
-        collect: (monitor) => ({
-            isOver: monitor.isOver({ shallow: true }),
-            canDrop: monitor.canDrop(),
-        }),
+        hover: (item: any, monitor) => {
+            if (!monitor.isOver({ shallow: true })) return;
+
+            const hoverBoundingRect = (ref.current as any).getBoundingClientRect();
+            const clientOffset = monitor.getClientOffset();
+            if (!clientOffset) return;
+
+            // Get orientation from theme
+            const flexDirection = activeThemeObject.styles.flexDirection || 'column';
+            const isRow = flexDirection === 'row';
+
+            let isStart = false;
+            let isEnd = false;
+
+            if (isRow) {
+                const hoverClientX = (clientOffset as any).x - hoverBoundingRect.left;
+                isStart = hoverClientX < hoverBoundingRect.width * 0.2;
+                isEnd = hoverClientX > hoverBoundingRect.width * 0.8;
+            } else {
+                const hoverClientY = (clientOffset as any).y - hoverBoundingRect.top;
+                isStart = hoverClientY < hoverBoundingRect.height * 0.2;
+                isEnd = hoverClientY > hoverBoundingRect.height * 0.8;
+            }
+
+            const targetIndex = isStart ? 0 : components.length;
+            const isNew = item.type === DragTypes.NEW_COMPONENT;
+            const isCrossParent = item.parentId !== null;
+            const isExtreme = isStart || isEnd;
+
+            if (isNew || isCrossParent) {
+                if (isNew && item.isInstantiated && item.id) {
+                    if (item.parentId === null && item.index === targetIndex) return;
+                    builderContext.moveComponent(item.id, item.parentId, null, targetIndex);
+                    builderContext.updateComponent(item.id, { props: { isPlaceholder: isExtreme } });
+                    item.index = targetIndex;
+                    item.parentId = null;
+                    return;
+                }
+
+                if (isNew) {
+                    const newId = builderContext.addComponent(
+                        { ...item.componentDef, props: { ...item.componentDef.props, isPlaceholder: isExtreme } },
+                        null,
+                        targetIndex
+                    );
+                    item.isInstantiated = true;
+                    item.id = newId;
+                    item.index = targetIndex;
+                    item.parentId = null;
+                    return;
+                }
+
+                if (item.id) {
+                    if (item.parentId === null && item.index === targetIndex) return;
+                    builderContext.moveComponent(item.id, item.parentId, null, targetIndex);
+                    builderContext.updateComponent(item.id, { props: { isPlaceholder: isExtreme } });
+                    item.index = targetIndex;
+                    item.parentId = null;
+                }
+            } else {
+                if (item.id) {
+                    if (item.parentId === null && item.index === targetIndex) return;
+                    builderContext.moveComponent(item.id, item.parentId, null, targetIndex);
+                    builderContext.updateComponent(item.id, { props: { isPlaceholder: false } });
+                    item.index = targetIndex;
+                    item.parentId = null;
+                }
+            }
+        },
+        collect: (monitor) => {
+            const isOver = monitor.isOver({ shallow: true });
+            const item = monitor.getItem();
+            const clientOffset = monitor.getClientOffset();
+            let isStart = false;
+            let isEnd = false;
+
+            if (isOver && clientOffset && ref.current) {
+                const rect = ref.current.getBoundingClientRect();
+                const flexDirection = activeThemeObject.styles.flexDirection || 'column';
+                const isRow = flexDirection === 'row';
+
+                if (isRow) {
+                    const x = clientOffset.x - rect.left;
+                    isStart = x < rect.width * 0.2;
+                    isEnd = x > rect.width * 0.8;
+                } else {
+                    const y = clientOffset.y - rect.top;
+                    isStart = y < rect.height * 0.2;
+                    isEnd = y > rect.height * 0.8;
+                }
+            }
+
+            return {
+                isOver,
+                isStart,
+                isEnd,
+                isRow: activeThemeObject.styles.flexDirection === 'row'
+            };
+        },
     });
 
     drop(ref);
@@ -136,7 +230,6 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                 overflow: 'hidden',
             }}
         >
-            {/* Canvas Toolbar */}
             <div
                 style={{
                     display: 'flex',
@@ -148,7 +241,6 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                     borderBottom: `1px solid ${theme.border}`,
                 }}
             >
-                {/* Device selector */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px', backgroundColor: theme.bgSecondary, borderRadius: '6px' }}>
                     <button onClick={() => setDeviceType('desktop')} style={toolbarButtonStyle(deviceType === 'desktop')} title="Desktop">
                         <Monitor style={{ width: 16, height: 16 }} />
@@ -161,7 +253,6 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                     </button>
                 </div>
 
-                {/* Canvas Theme Selector */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '12px', color: theme.textMuted }}>Theme:</span>
                     <select
@@ -185,15 +276,14 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                 </div>
             </div>
 
-            {/* Canvas Area */}
             <div
                 style={{
                     flex: 1,
                     display: 'flex',
-                    alignItems: 'flex-start', // Was stretch
-                    justifyContent: 'flex-start', // Was center
+                    alignItems: 'flex-start',
+                    justifyContent: 'flex-start',
                     overflow: 'auto',
-                    padding: 0, // Was paddingTop: '40px'
+                    padding: 0,
                 }}
                 onClick={handleCanvasClick}
             >
@@ -204,15 +294,14 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                         width: getCanvasWidth(),
                         maxWidth: activeThemeObject.styles.maxWidth as string || (deviceType === 'desktop' ? 'none' : getCanvasWidth()),
                         margin: activeThemeObject.styles.margin as string || '0 auto',
-                        padding: activeThemeObject.styles.sectionPadding as string || '40px 20px',
                         minHeight: activeThemeObject.styles.minHeight as string || '100vh',
-                        backgroundColor: activeThemeObject.styles.backgroundColor as string || canvasTheme.bg,
+                        backgroundColor: (activeThemeObject.styles.backgroundColor as string) || canvasTheme.bg,
                         color: canvasTheme.text,
                         backgroundImage: activeThemeObject.styles.backgroundImage ? `url(${activeThemeObject.styles.backgroundImage})` : undefined,
                         backgroundSize: (activeThemeObject.styles.backgroundSize as string) || 'cover',
                         backgroundPosition: (activeThemeObject.styles.backgroundPosition as string) || 'center',
                         backgroundRepeat: (activeThemeObject.styles.backgroundRepeat as string) || 'no-repeat',
-                        transition: 'width 0.3s ease, background-color 0.3s ease',
+                        transition: 'width 0.3s ease, background-color 0.3s ease, padding 0.2s ease',
                         overflow: 'visible',
                         fontFamily: `'${activeThemeObject.styles.fontFamily || 'Inter'}', system-ui, sans-serif`,
                         fontSize: activeThemeObject.styles.fontSize ? (typeof activeThemeObject.styles.fontSize === 'number' || !activeThemeObject.styles.fontSize.toString().match(/[a-z%]/i) ? `${activeThemeObject.styles.fontSize}px` : activeThemeObject.styles.fontSize.toString()) : '16px',
@@ -221,9 +310,15 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                         flexDirection: activeThemeObject.styles.flexDirection as any || 'column',
                         justifyContent: activeThemeObject.styles.justifyContent as string || 'flex-start',
                         alignItems: activeThemeObject.styles.alignItems as string || 'stretch',
-                        gap: activeThemeObject.styles.gap as string,
-                        position: 'relative',
-                        boxShadow: '0 0 20px rgba(0,0,0,0.1)', // Subtle shadow
+                        gap: (activeThemeObject.styles.gap as string),
+                        boxShadow: '0 0 20px rgba(0,0,0,0.1)',
+                        ...(activeThemeObject.styles as any),
+                        // Adaptive padding for expansion: merge theme values with dynamic expansion
+                        paddingTop: (isOver && !isRow && isStart ? 60 : (activeThemeObject.styles.paddingTop || activeThemeObject.styles.padding || 0)) as any,
+                        paddingBottom: (isOver && !isRow && isEnd ? 60 : (activeThemeObject.styles.paddingBottom || activeThemeObject.styles.padding || 0)) as any,
+                        paddingLeft: (isOver && isRow && isStart ? 60 : (activeThemeObject.styles.paddingLeft || activeThemeObject.styles.padding || 0)) as any,
+                        paddingRight: (isOver && isRow && isEnd ? 60 : (activeThemeObject.styles.paddingRight || activeThemeObject.styles.padding || 0)) as any,
+                        position: 'relative' as any,
                     }}
                 >
                     {components.map((component, index) => (
@@ -233,9 +328,10 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                             index={index}
                             parentId={null}
                             builderContext={builderContext}
-                            theme={theme} // Pass theme for styling
+                            theme={theme}
                             activeThemeObject={activeThemeObject}
                             canvasTheme={canvasTheme}
+                            parentFlexDirection={activeThemeObject.styles.flexDirection as any || 'column'}
                         />
                     ))}
 
@@ -245,13 +341,13 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                                 padding: '40px',
                                 textAlign: 'center',
                                 color: canvasTheme.text,
-                                opacity: 0.4, // isAnythingDragging ? 0.6 : 0.4
+                                opacity: 0.4,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 minHeight: '400px',
-                                pointerEvents: 'none', // Ensure clicks go to the drop target
+                                pointerEvents: 'none',
                                 width: '100%',
                                 height: '100%',
                             }}
@@ -262,19 +358,13 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                                     height: '60px',
                                     margin: '0 auto 16px',
                                     borderRadius: '12px',
-                                    backgroundColor: `${canvasTheme.text}10`, // 10 is hex opacity
+                                    backgroundColor: `${canvasTheme.text}10`,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                 }}
                             >
                                 <div style={{ opacity: 0.5 }}>
-                                    {/* Simple Plus Icon SVG if lucide import fails or complexity is high, 
-                                        but we have Lucide imports available in this file (Sun, Moon etc). 
-                                        Let's try to import Plus at the top first? 
-                                        I can't change imports with this tool easily if I don't target the top.
-                                        I'll use a standard SVG here to be safe and avoiding import errors mid-file 
-                                      */}
                                     <svg
                                         width="30"
                                         height="30"
@@ -308,6 +398,6 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                 theme={theme}
                 canvasTheme={canvasTheme}
             />
-        </div >
+        </div>
     );
 };

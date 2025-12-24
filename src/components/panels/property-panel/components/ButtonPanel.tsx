@@ -3,6 +3,7 @@ import React from 'react';
 import { Type, MousePointerClick } from 'lucide-react';
 import { Section } from '../Section';
 import { createInputStyle, createLabelStyle } from '../styles';
+import { stripHtml } from '../../../../utils/text';
 import type { ComponentPanelProps } from './types';
 
 export const ButtonPanel: React.FC<ComponentPanelProps> = ({
@@ -30,7 +31,7 @@ export const ButtonPanel: React.FC<ComponentPanelProps> = ({
                     <label style={labelStyle}>Button Text</label>
                     <input
                         type="text"
-                        value={(resolveProp('text') as string) || ''}
+                        value={stripHtml((resolveProp('text') as string) || '')}
                         onChange={(e) => updateProp('text', e.target.value)}
                         placeholder="Enter button text..."
                         style={inputStyle}

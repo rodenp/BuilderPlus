@@ -7,14 +7,23 @@ export const Renderer: React.FC<CanvasComponentProps> = ({
 }) => {
   const { props } = component;
 
+  const textStyle: React.CSSProperties = {
+    ...commonStyles,
+    fontSize: commonStyles.fontSize || '16px',
+    fontWeight: commonStyles.fontWeight || 400,
+    lineHeight: commonStyles.lineHeight || 1.5,
+    color: commonStyles.color,
+    margin: 0,
+    display: 'block',
+    width: '100%',
+  };
+
+  const text = (props.text as string) || 'Text';
+
   return (
-    <span
-      style={{
-        ...commonStyles,
-        color: commonStyles.color,
-      }}
-    >
-      {(props.text as string) || 'Text'}
-    </span>
+    <div
+      style={textStyle}
+      dangerouslySetInnerHTML={{ __html: text }}
+    />
   );
 };

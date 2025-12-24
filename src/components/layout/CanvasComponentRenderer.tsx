@@ -52,6 +52,11 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
         collect: (monitor) => ({
             isDragging: monitor.isDragging(),
         }),
+        end: (item: any, monitor) => {
+            if (item && item.id) {
+                builderContext.updateComponent(item.id, { props: { isPlaceholder: false } });
+            }
+        },
     });
 
     // DROP logic
@@ -60,11 +65,17 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
         collect: (monitor) => ({
             handlerId: monitor.getHandlerId(),
         }),
+        drop: (item: any) => {
+            if (item.id && (item as any).isInstantiated) {
+                builderContext.updateComponent(item.id, { props: { isPlaceholder: false } });
+            }
+        },
         hover(item: any, monitor) {
             if (!ref.current) return;
-            if (!monitor.isOver({ shallow: true })) return;
+            const isOverShallow = monitor.isOver({ shallow: true });
 
-            const dragIndex = item.index;
+            if (!isOverShallow) return;
+
             const hoverIndex = index;
             const hoverBoundingRect = ref.current?.getBoundingClientRect();
 
@@ -72,46 +83,74 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
             const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2;
 
             const clientOffset = monitor.getClientOffset();
+            if (!clientOffset) return;
+
             const hoverClientY = (clientOffset as any).y - hoverBoundingRect.top;
             const hoverClientX = (clientOffset as any).x - hoverBoundingRect.left;
 
             const isHorizontal = parentFlexDirection.includes('row');
 
+            // Determine if mouse is in the first half or second half
+            let isAfter = false;
             if (isHorizontal) {
-                if (dragIndex < hoverIndex && hoverClientX < hoverMiddleX) return;
-                if (dragIndex > hoverIndex && hoverClientX > hoverMiddleX) return;
+                isAfter = hoverClientX > hoverMiddleX;
             } else {
-                if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
-                if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
+                isAfter = hoverClientY > hoverMiddleY;
             }
 
-            if (item.type === DragTypes.NEW_COMPONENT) {
-                // Check if we already instantiated this component during this drag operation
-                if ((item as any).isInstantiated && (item as any).id) {
-                    // Just move it
-                    if (item.parentId === parentId && dragIndex === hoverIndex) return;
-                    builderContext.moveComponent(item.id, item.parentId, parentId, hoverIndex);
-                    item.index = hoverIndex;
+            const targetIndex = isAfter ? hoverIndex + 1 : hoverIndex;
+
+            // Determine if this is an "Extreme" position (top or bottom)
+            const parent = parentId ? builderContext.findContainer(parentId) : null;
+            const parentChildren = parent ? (parent.children || []) : builderContext.components;
+
+            const isNew = item.type === DragTypes.NEW_COMPONENT;
+            const isCrossParent = item.parentId !== parentId;
+            const isExtreme = targetIndex === 0 || targetIndex >= parentChildren.length;
+
+            if (isNew || isCrossParent) {
+                // If this is a cross-parent move or a new component, handle placeholder
+                if (isNew && (item as any).isInstantiated && (item as any).id) {
+                    if (item.parentId === parentId && item.index === targetIndex) return;
+                    builderContext.moveComponent(item.id, item.parentId, parentId, targetIndex);
+                    builderContext.updateComponent(item.id, { props: { ...item.props, isPlaceholder: isExtreme } });
+                    item.index = targetIndex;
                     item.parentId = parentId;
                     return;
                 }
 
-                const newId = builderContext.addComponent(item.componentDef, parentId, hoverIndex);
-                // Mark as instantiated so we don't keep adding it, but DO NOT change item.type
-                // This preserves the component's actual type for validation in drop zones.
-                (item as any).isInstantiated = true;
-                (item as any).id = newId;
-                item.index = hoverIndex;
-                item.parentId = parentId;
-                return;
-            }
+                if (isNew) {
+                    const newId = builderContext.addComponent(
+                        { ...item.componentDef, props: { ...item.componentDef.props, isPlaceholder: isExtreme } },
+                        parentId,
+                        targetIndex
+                    );
+                    (item as any).isInstantiated = true;
+                    (item as any).id = newId;
+                    item.index = targetIndex;
+                    item.parentId = parentId;
+                    return;
+                }
 
-            const isDragItem = monitor.getItemType() === DragTypes.ITEM || item.type === DragTypes.ITEM;
-            if (isDragItem && item.id !== component.id) {
-                if (item.parentId === parentId && dragIndex === hoverIndex) return;
-                builderContext.moveComponent(item.id, item.parentId, parentId, hoverIndex);
-                item.index = hoverIndex;
-                item.parentId = parentId;
+                // Cross-parent move for existing item
+                if (item.id && item.id !== component.id) {
+                    if (item.parentId === parentId && item.index === targetIndex) return;
+                    builderContext.moveComponent(item.id, item.parentId, parentId, targetIndex);
+                    // Set placeholder true if extreme cross-parent, else false (kanban reorder)
+                    builderContext.updateComponent(item.id, { props: { ...item.props, isPlaceholder: isExtreme } });
+                    item.index = targetIndex;
+                    item.parentId = parentId;
+                }
+            } else {
+                // Normal Kanban move within same parent (no placeholder)
+                if (item.id && item.id !== component.id) {
+                    if (item.parentId === parentId && item.index === targetIndex) return;
+                    builderContext.moveComponent(item.id, item.parentId, parentId, targetIndex);
+                    // ALWAYS false for internal reorders
+                    builderContext.updateComponent(item.id, { props: { isPlaceholder: false } });
+                    item.index = targetIndex;
+                    item.parentId = parentId;
+                }
             }
         },
     });
@@ -133,7 +172,7 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
             theme={theme}
             activeThemeObject={activeThemeObject}
             canvasTheme={canvasTheme}
-            parentFlexDirection={(component.props as any).flexDirection}
+            parentFlexDirection={(component.props as any).flexDirection || activeThemeObject?.styles?.flexDirection || 'column'}
         />
     );
 
@@ -169,9 +208,11 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
     const commonStyles = extractCommonStyles(mergedProps);
 
     const renderComponent = () => {
+        let content: React.ReactNode;
+
         if (!isContainer) {
             if (Renderer) {
-                return (
+                content = (
                     <Renderer
                         component={{ ...component, props: mergedProps }}
                         canvasTheme={canvasTheme}
@@ -181,72 +222,105 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
                         renderChild={renderChild}
                     />
                 );
+            } else {
+                content = <div>Unknown Component: {component.type}</div>;
             }
-            return <div>Unknown Component: {component.type}</div>;
+        } else {
+            const CustomRenderer = customContainerRegistry.getRenderer(component.type);
+            if (CustomRenderer) {
+                content = (
+                    <CustomRenderer
+                        component={{ ...component, props: mergedProps }}
+                        canvasTheme={canvasTheme}
+                        commonStyles={commonStyles}
+                        uiTheme={theme}
+                        activeThemeObject={activeThemeObject}
+                        isPreviewMode={false}
+                        renderChild={renderChild}
+                        builderContext={builderContext}
+                    />
+                );
+            } else {
+                switch (component.type) {
+                    case 'columns':
+                        content = (
+                            <ContainerDroppable
+                                containerId={component.id}
+                                containerType={component.type}
+                                children={component.children || []}
+                                builderContext={builderContext}
+                                theme={theme}
+                                activeThemeObject={activeThemeObject}
+                                canvasTheme={canvasTheme}
+                                style={{
+                                    ...commonStyles,
+                                    display: 'grid',
+                                    gridTemplateColumns: `repeat(${(mergedProps.columns as number) || 2}, 1fr)`,
+                                    gap: (mergedProps.gap as string) || '16px',
+                                    minHeight: (commonStyles as any).minHeight || '50px',
+                                    border: ((commonStyles as any).borderWidth || (mergedProps.backgroundColor && mergedProps.backgroundColor !== 'transparent')) ? undefined : `1px dashed ${canvasTheme.text}20`
+                                }}
+                                emptyContent={null}
+                            />
+                        );
+                        break;
+
+                    default:
+                        content = (
+                            <ContainerDroppable
+                                containerId={component.id}
+                                containerType={component.type}
+                                children={component.children || []}
+                                builderContext={builderContext}
+                                theme={theme}
+                                activeThemeObject={activeThemeObject}
+                                canvasTheme={canvasTheme}
+                                style={{
+                                    ...commonStyles,
+                                    minHeight: (commonStyles as any).minHeight || '50px',
+                                    border: ((commonStyles as any).borderWidth || (mergedProps.backgroundColor && mergedProps.backgroundColor !== 'transparent')) ? undefined : `1px dashed ${canvasTheme.text}20`
+                                }}
+                                emptyContent={
+                                    <span style={{ color: canvasTheme.text, opacity: 0.5, fontSize: '12px' }}>
+                                        {component.type}
+                                    </span>
+                                }
+                            />
+                        );
+                        break;
+                }
+            }
         }
 
-        const CustomRenderer = customContainerRegistry.getRenderer(component.type);
-        if (CustomRenderer) {
+        // Wrap with placeholder styling if flagged
+        if (component.props.isPlaceholder) {
             return (
-                <CustomRenderer
-                    component={{ ...component, props: mergedProps }}
-                    canvasTheme={canvasTheme}
-                    commonStyles={commonStyles}
-                    uiTheme={theme}
-                    activeThemeObject={activeThemeObject}
-                    isPreviewMode={false}
-                    renderChild={renderChild}
-                    builderContext={builderContext}
-                />
+                <div style={{ position: 'relative' }}>
+                    <div
+                        style={{
+                            position: 'absolute',
+                            inset: 0,
+                            zIndex: 20,
+                            border: '2px dashed #3b82f6',
+                            backgroundColor: '#3b82f620',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#3b82f6',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            pointerEvents: 'none',
+                        }}
+                    >
+                        Drop Here
+                    </div>
+                    <div style={{ opacity: 0.4 }}>{content}</div>
+                </div>
             );
         }
 
-        switch (component.type) {
-            case 'columns':
-                return (
-                    <ContainerDroppable
-                        containerId={component.id}
-                        containerType={component.type}
-                        children={component.children || []}
-                        builderContext={builderContext}
-                        theme={theme}
-                        activeThemeObject={activeThemeObject}
-                        canvasTheme={canvasTheme}
-                        style={{
-                            ...commonStyles,
-                            display: 'grid',
-                            gridTemplateColumns: `repeat(${(mergedProps.columns as number) || 2}, 1fr)`,
-                            gap: (mergedProps.gap as string) || '16px',
-                            minHeight: (commonStyles as any).minHeight || '50px',
-                            border: ((commonStyles as any).borderWidth || (mergedProps.backgroundColor && mergedProps.backgroundColor !== 'transparent')) ? undefined : `1px dashed ${canvasTheme.text}20`
-                        }}
-                        emptyContent={null}
-                    />
-                );
-
-            default:
-                return (
-                    <ContainerDroppable
-                        containerId={component.id}
-                        containerType={component.type}
-                        children={component.children || []}
-                        builderContext={builderContext}
-                        theme={theme}
-                        activeThemeObject={activeThemeObject}
-                        canvasTheme={canvasTheme}
-                        style={{
-                            ...commonStyles,
-                            minHeight: (commonStyles as any).minHeight || '50px',
-                            border: ((commonStyles as any).borderWidth || (mergedProps.backgroundColor && mergedProps.backgroundColor !== 'transparent')) ? undefined : `1px dashed ${canvasTheme.text}20`
-                        }}
-                        emptyContent={
-                            <span style={{ color: canvasTheme.text, opacity: 0.5, fontSize: '12px' }}>
-                                {component.type}
-                            </span>
-                        }
-                    />
-                );
-        }
+        return content;
     };
 
     const wrapperStyle: React.CSSProperties = {
