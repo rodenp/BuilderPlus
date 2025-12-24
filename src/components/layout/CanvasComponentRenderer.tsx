@@ -217,7 +217,8 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
                             display: 'grid',
                             gridTemplateColumns: `repeat(${(mergedProps.columns as number) || 2}, 1fr)`,
                             gap: (mergedProps.gap as string) || '16px',
-                            minHeight: (commonStyles as any).minHeight || '50px'
+                            minHeight: (commonStyles as any).minHeight || '50px',
+                            border: ((commonStyles as any).borderWidth || (mergedProps.backgroundColor && mergedProps.backgroundColor !== 'transparent')) ? undefined : `1px dashed ${canvasTheme.text}20`
                         }}
                         emptyContent={null}
                     />
@@ -236,7 +237,7 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
                         style={{
                             ...commonStyles,
                             minHeight: (commonStyles as any).minHeight || '50px',
-                            border: (commonStyles as any).borderWidth ? undefined : `1px dashed ${canvasTheme.text}20`
+                            border: ((commonStyles as any).borderWidth || (mergedProps.backgroundColor && mergedProps.backgroundColor !== 'transparent')) ? undefined : `1px dashed ${canvasTheme.text}20`
                         }}
                         emptyContent={
                             <span style={{ color: canvasTheme.text, opacity: 0.5, fontSize: '12px' }}>
@@ -252,8 +253,9 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
         opacity: isDragging ? 0.3 : 1,
         cursor: 'move',
         position: 'relative',
-        outline: isSelected ? `2px solid ${theme.primary}` : (isHovered ? `1px solid ${theme.primary}` : undefined),
-        outlineOffset: '2px',
+        outline: (isSelected || isHovered) ? `2px solid ${theme.primary}` : undefined,
+        outlineOffset: '-2px',
+        zIndex: (isSelected || isHovered) ? 10 : undefined,
     };
 
     return (

@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import {
-    Trash2, Copy, Type, X, Bold, Italic, Underline,
+    Trash2, Copy, Type, X, Bold, Italic, Underline, ChevronUp, ChevronDown,
     Link as LinkIcon, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight
 } from 'lucide-react';
 import type { Theme } from '../panels/property-panel/theme';
 import { getComponentIcon } from '../../utils/getComponentIcon';
 import { RichTextEditor, type RichTextEditorRef } from '../RichTextEditor';
+import { isContainer as isRegisteredContainer } from '../../components/canvas-components/register';
 
 interface SelectionOverlayProps {
     selectedId: string | null;
@@ -97,10 +98,17 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
                     setTargetType(component.type);
                     setTargetComponent(component);
 
-                    // Auto-open editor for paragraphs - ONLY if we just selected it
-                    if (component.type === 'paragraph' && selectedId !== prevSelectedId.current) {
+                    // Check if it's a text-editable type for auto-opening the editor
+                    const isText = ['paragraph', 'rich-text', 'text-block', 'heading', 'text'].includes(component.type);
+
+                    // Auto-open editor for text components - ONLY if we just selected it
+                    if (isText && selectedId !== prevSelectedId.current) {
                         setIsEditing(true);
                         setToolbarMode('text');
+                    } else if (selectedId !== prevSelectedId.current) {
+                        // Reset editing state if we switch to a non-text component
+                        setIsEditing(false);
+                        setToolbarMode('component');
                     }
                 }
             } else {
@@ -120,23 +128,11 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
         };
     }, [selectedId, builderContext]);
 
-    // 2. Fix Double Border by suppressing the renderer's outline via DOM
-    useEffect(() => {
-        if (selectedId) {
-            const wrapper = document.getElementById(`component-${selectedId}`);
-            if (wrapper) {
-                const originalOutline = wrapper.style.outline;
-                wrapper.style.setProperty('outline', 'none', 'important');
-                return () => {
-                    wrapper.style.outline = originalOutline;
-                };
-            }
-        }
-    }, [selectedId]);
+    // 2. Removed outline suppress logic - consolidated in renderer for better performance
 
     // Characterize components
     const isRichText = ['paragraph', 'rich-text', 'text-block'].includes(targetType);
-    const isSimpleEditable = ['heading', 'text', 'button'].includes(targetType);
+    const isSimpleEditable = ['heading', 'text'].includes(targetType);
     const isTextEditable = isRichText || isSimpleEditable;
 
     // 3. Auto-hiding component during edit
@@ -222,19 +218,7 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
                         pointerEvents: 'none'
                     }}
                 >
-                    {/* Wide Selection Frame */}
-                    <div
-                        style={{
-                            position: 'absolute',
-                            top: rect.top,
-                            left: rect.left,
-                            width: rect.width,
-                            height: rect.height,
-                            outline: `2px solid ${theme.primary}`,
-                            outlineOffset: '-2px',
-                            pointerEvents: 'none'
-                        }}
-                    />
+                    {/* Wide Selection Frame - Handled by renderer for better performance/sync */}
 
                     {/* Toolbar Badge */}
                     <div
@@ -259,10 +243,34 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
                             <>
                                 {Icon && <div style={{ padding: '4px' }}><Icon size={12} /></div>}
                                 <span style={{ marginRight: '4px' }}>{targetType}</span>
+                                {/* UP Navigation */}
+                                <ToolbarIconButton
+                                    onClick={() => {
+                                        const parentId = builderContext.findParent(selectedId);
+                                        if (parentId) builderContext.selectComponent(parentId);
+                                    }}
+                                    icon={ChevronUp}
+                                    title="Go to Parent"
+                                    theme={theme}
+                                    color={builderContext.findParent(selectedId) ? '#fff' : 'rgba(255,255,255,0.3)'}
+                                />
+
+                                {/* DOWN Navigation */}
+                                <ToolbarIconButton
+                                    onClick={() => {
+                                        const firstChild = targetComponent.children?.[0];
+                                        if (firstChild) builderContext.selectComponent(firstChild.id);
+                                    }}
+                                    icon={ChevronDown}
+                                    title="Go to Child"
+                                    theme={theme}
+                                    color={targetComponent.children && targetComponent.children.length > 0 ? '#fff' : 'rgba(255,255,255,0.3)'}
+                                />
+
                                 <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.3)', margin: '0 2px' }} />
 
-                                {/* T-Icon: Swaps to Formatting mode. Only for rich-text types. */}
-                                {isRichText && (
+                                {/* T-Icon: Swaps to Formatting mode. Visible for all text types. */}
+                                {isTextEditable ? (
                                     <ToolbarIconButton
                                         onClick={() => {
                                             setIsEditing(true);
@@ -273,6 +281,8 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ selectedId, 
                                         color="#fff"
                                         theme={theme}
                                     />
+                                ) : (
+                                    <div style={{ width: 22 }} /> // Placeholder to keep spacing consistent
                                 )}
 
                                 <div style={{ width: 1, height: 12, background: 'rgba(255,255,255,0.3)', margin: '0 2px' }} />
