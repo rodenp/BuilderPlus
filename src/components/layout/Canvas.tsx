@@ -98,7 +98,7 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
         }
     };
 
-    const [{ isOver, isStart, isEnd, isRow }, drop] = useDrop({
+    const [{ isOver }, drop] = useDrop({
         accept: [DragTypes.NEW_COMPONENT, DragTypes.CONTAINER, DragTypes.ITEM],
         drop: (item: any, monitor) => {
             if (monitor.didDrop()) return;
@@ -124,27 +124,14 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
             const clientOffset = monitor.getClientOffset();
             if (!clientOffset) return;
 
-            // Get orientation from theme
-            const flexDirection = activeThemeObject.styles.flexDirection || 'column';
-            const isRow = flexDirection === 'row';
+            const hoverClientY = (clientOffset as any).y - hoverBoundingRect.top;
+            const isTop = hoverClientY < hoverBoundingRect.height * 0.2;
+            const isBottom = hoverClientY > hoverBoundingRect.height * 0.8;
 
-            let isStart = false;
-            let isEnd = false;
-
-            if (isRow) {
-                const hoverClientX = (clientOffset as any).x - hoverBoundingRect.left;
-                isStart = hoverClientX < hoverBoundingRect.width * 0.2;
-                isEnd = hoverClientX > hoverBoundingRect.width * 0.8;
-            } else {
-                const hoverClientY = (clientOffset as any).y - hoverBoundingRect.top;
-                isStart = hoverClientY < hoverBoundingRect.height * 0.2;
-                isEnd = hoverClientY > hoverBoundingRect.height * 0.8;
-            }
-
-            const targetIndex = isStart ? 0 : components.length;
+            const targetIndex = isTop ? 0 : components.length;
             const isNew = item.type === DragTypes.NEW_COMPONENT;
             const isCrossParent = item.parentId !== null;
-            const isExtreme = isStart || isEnd;
+            const isExtreme = isTop || isBottom;
 
             if (isNew || isCrossParent) {
                 if (isNew && item.isInstantiated && item.id) {
@@ -187,33 +174,8 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
             }
         },
         collect: (monitor) => {
-            const isOver = monitor.isOver({ shallow: true });
-            const item = monitor.getItem();
-            const clientOffset = monitor.getClientOffset();
-            let isStart = false;
-            let isEnd = false;
-
-            if (isOver && clientOffset && ref.current) {
-                const rect = ref.current.getBoundingClientRect();
-                const flexDirection = activeThemeObject.styles.flexDirection || 'column';
-                const isRow = flexDirection === 'row';
-
-                if (isRow) {
-                    const x = clientOffset.x - rect.left;
-                    isStart = x < rect.width * 0.2;
-                    isEnd = x > rect.width * 0.8;
-                } else {
-                    const y = clientOffset.y - rect.top;
-                    isStart = y < rect.height * 0.2;
-                    isEnd = y > rect.height * 0.8;
-                }
-            }
-
             return {
-                isOver,
-                isStart,
-                isEnd,
-                isRow: activeThemeObject.styles.flexDirection === 'row'
+                isOver: monitor.isOver({ shallow: true }),
             };
         },
     });
@@ -301,7 +263,7 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                         backgroundSize: (activeThemeObject.styles.backgroundSize as string) || 'cover',
                         backgroundPosition: (activeThemeObject.styles.backgroundPosition as string) || 'center',
                         backgroundRepeat: (activeThemeObject.styles.backgroundRepeat as string) || 'no-repeat',
-                        transition: 'width 0.3s ease, background-color 0.3s ease, padding 0.2s ease',
+                        transition: 'width 0.3s ease, background-color 0.3s ease',
                         overflow: 'visible',
                         fontFamily: `'${activeThemeObject.styles.fontFamily || 'Inter'}', system-ui, sans-serif`,
                         fontSize: activeThemeObject.styles.fontSize ? (typeof activeThemeObject.styles.fontSize === 'number' || !activeThemeObject.styles.fontSize.toString().match(/[a-z%]/i) ? `${activeThemeObject.styles.fontSize}px` : activeThemeObject.styles.fontSize.toString()) : '16px',
@@ -311,14 +273,11 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                         justifyContent: activeThemeObject.styles.justifyContent as string || 'flex-start',
                         alignItems: activeThemeObject.styles.alignItems as string || 'stretch',
                         gap: (activeThemeObject.styles.gap as string),
+                        position: 'relative',
                         boxShadow: '0 0 20px rgba(0,0,0,0.1)',
-                        ...(activeThemeObject.styles as any),
-                        // Adaptive padding for expansion: merge theme values with dynamic expansion
-                        paddingTop: (isOver && !isRow && isStart ? 60 : (activeThemeObject.styles.paddingTop || activeThemeObject.styles.padding || 0)) as any,
-                        paddingBottom: (isOver && !isRow && isEnd ? 60 : (activeThemeObject.styles.paddingBottom || activeThemeObject.styles.padding || 0)) as any,
-                        paddingLeft: (isOver && isRow && isStart ? 60 : (activeThemeObject.styles.paddingLeft || activeThemeObject.styles.padding || 0)) as any,
-                        paddingRight: (isOver && isRow && isEnd ? 60 : (activeThemeObject.styles.paddingRight || activeThemeObject.styles.padding || 0)) as any,
-                        position: 'relative' as any,
+                        ...activeThemeObject.styles,
+                        // Ensure layout-critical properties aren't accidentally broken by themes
+                        padding: (activeThemeObject.styles.sectionPadding as string) || activeThemeObject.styles.padding as string || '0px',
                     }}
                 >
                     {components.map((component, index) => (
@@ -331,7 +290,6 @@ export const Canvas: React.FC<CanvasProps> = (props) => {
                             theme={theme}
                             activeThemeObject={activeThemeObject}
                             canvasTheme={canvasTheme}
-                            parentFlexDirection={activeThemeObject.styles.flexDirection as any || 'column'}
                         />
                     ))}
 

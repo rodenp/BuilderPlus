@@ -172,7 +172,7 @@ export const CanvasComponentRenderer: React.FC<CanvasComponentRendererProps> = (
             theme={theme}
             activeThemeObject={activeThemeObject}
             canvasTheme={canvasTheme}
-            parentFlexDirection={(component.props as any).flexDirection || activeThemeObject?.styles?.flexDirection || 'column'}
+            parentFlexDirection={(component.props as any).flexDirection}
         />
     );
 

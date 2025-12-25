@@ -36,7 +36,7 @@ export const ContainerDroppable: React.FC<ContainerDroppableProps> = ({
     const ref = useRef<HTMLDivElement>(null);
     const { moveComponent, addComponent } = builderContext;
 
-    const [{ isOver, canDrop, isStart, isEnd, isRow }, drop] = useDrop({
+    const [{ isOver, canDrop }, drop] = useDrop({
         accept: [DragTypes.ITEM, DragTypes.CONTAINER, DragTypes.NEW_COMPONENT],
         canDrop: (item: any) => {
             // Prevent dropping into itself
@@ -74,25 +74,14 @@ export const ContainerDroppable: React.FC<ContainerDroppableProps> = ({
             const clientOffset = monitor.getClientOffset();
             if (!clientOffset) return;
 
-            const isRowLocal = (style as any)?.flexDirection === 'row' || activeThemeObject?.styles?.flexDirection === 'row';
+            const hoverClientY = (clientOffset as any).y - hoverBoundingRect.top;
+            const isTop = hoverClientY < hoverBoundingRect.height * 0.2;
+            const isBottom = hoverClientY > hoverBoundingRect.height * 0.8;
 
-            let isStartLocal = false;
-            let isEndLocal = false;
-
-            if (isRowLocal) {
-                const hoverClientX = (clientOffset as any).x - hoverBoundingRect.left;
-                isStartLocal = hoverClientX < hoverBoundingRect.width * 0.2;
-                isEndLocal = hoverClientX > hoverBoundingRect.width * 0.8;
-            } else {
-                const hoverClientY = (clientOffset as any).y - hoverBoundingRect.top;
-                isStartLocal = hoverClientY < hoverBoundingRect.height * 0.3;
-                isEndLocal = hoverClientY > hoverBoundingRect.height * 0.7;
-            }
-
-            const targetIndex = isStartLocal ? 0 : children.length;
+            const targetIndex = isTop ? 0 : children.length;
             const isNew = item.type === DragTypes.NEW_COMPONENT;
             const isCrossParent = item.parentId !== containerId;
-            const isExtreme = isStartLocal || isEndLocal;
+            const isExtreme = isTop || isBottom;
 
             if (isNew || isCrossParent) {
                 if (isNew && item.isInstantiated && item.id) {
@@ -137,33 +126,9 @@ export const ContainerDroppable: React.FC<ContainerDroppableProps> = ({
             }
         },
         collect: (monitor) => {
-            const isOverLocal = monitor.isOver({ shallow: true });
-            const item = monitor.getItem();
-            const clientOffset = monitor.getClientOffset();
-            let isStartLocal = false;
-            let isEndLocal = false;
-
-            if (isOverLocal && clientOffset && ref.current) {
-                const rect = ref.current.getBoundingClientRect();
-                const isRowLocal = (style as any)?.flexDirection === 'row' || activeThemeObject?.styles?.flexDirection === 'row';
-
-                if (isRowLocal) {
-                    const x = clientOffset.x - rect.left;
-                    isStartLocal = x < rect.width * 0.2;
-                    isEndLocal = x > rect.width * 0.8;
-                } else {
-                    const y = clientOffset.y - rect.top;
-                    isStartLocal = y < rect.height * 0.3;
-                    isEndLocal = y > rect.height * 0.7;
-                }
-            }
-
             return {
-                isOver: isOverLocal,
+                isOver: monitor.isOver({ shallow: true }),
                 canDrop: monitor.canDrop(),
-                isStart: isStartLocal,
-                isEnd: isEndLocal,
-                isRow: (style as any)?.flexDirection === 'row' || activeThemeObject?.styles?.flexDirection === 'row'
             };
         },
     });
@@ -179,13 +144,8 @@ export const ContainerDroppable: React.FC<ContainerDroppableProps> = ({
             className={`${className || ''} ${isActive ? 'ring-2 ring-blue-400 bg-blue-50/10' : ''} ${isRejected ? 'ring-2 ring-red-400 bg-red-50/10 cursor-no-drop' : ''}`}
             style={{
                 ...style,
-                transition: 'background-color 0.2s, box-shadow 0.2s, padding 0.2s ease',
+                transition: 'background-color 0.2s, box-shadow 0.2s',
                 minHeight: children.length === 0 ? '60px' : undefined,
-                // Adaptive padding: merge existing styles with dynamic expansion
-                paddingTop: (isOver && !isRow && isStart ? 60 : (style?.paddingTop || style?.padding || activeThemeObject?.styles?.paddingTop || activeThemeObject?.styles?.padding || 0)) as any,
-                paddingBottom: (isOver && !isRow && isEnd ? 60 : (style?.paddingBottom || style?.padding || activeThemeObject?.styles?.paddingBottom || activeThemeObject?.styles?.padding || 0)) as any,
-                paddingLeft: (isOver && isRow && isStart ? 60 : (style?.paddingLeft || style?.padding || activeThemeObject?.styles?.paddingLeft || activeThemeObject?.styles?.padding || 0)) as any,
-                paddingRight: (isOver && isRow && isEnd ? 60 : (style?.paddingRight || style?.padding || activeThemeObject?.styles?.paddingRight || activeThemeObject?.styles?.padding || 0)) as any,
             }}
         >
             {children.map((child, i) => (
@@ -198,7 +158,7 @@ export const ContainerDroppable: React.FC<ContainerDroppableProps> = ({
                     theme={theme}
                     activeThemeObject={activeThemeObject}
                     canvasTheme={canvasTheme}
-                    parentFlexDirection={(style as any)?.flexDirection || activeThemeObject?.styles?.flexDirection || 'column'}
+                    parentFlexDirection={(style as any)?.flexDirection}
                 />
             ))}
 
